@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Ordering | خریداری</title>
+    <style>
+        /* --- Shared Variables & Global Reset --- */
+        :root {
+            --color-text: #212121;
+            --color-bg: #FAFAFA;
+            --color-delivery: #00796B;
+            --color-ride: #D81B60;
+            --color-shopping: #FBC02D; /* Yellow Accent (Used for Shopping) */
+            --color-success: #388E3C;
+            --color-border: #757575;
+            --color-price: #D81B60; 
+            --color-highlight: #FFF8E1; 
+
+            /* High Contrast Colors */
+            --hc-bg: #000000;
+            --hc-text: #FFFFFF;
+            --hc-card-bg: #222222;
+            --hc-border: #AAAAAA;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            padding: 1rem; 
+            min-height: 100vh;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* RTL/LTR Handling */
+        [dir="rtl"] { text-align: right; }
+        [dir="ltr"] { text-align: left; }
+
+        /* Large Touch Targets Base */
+        button, input, textarea {
+            min-height: 48px;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+
+        /* ========================================= */
+        /* === ACCESSIBILITY SCALING (GLOBAL) - HIGH CONTRAST === */
+        /* ========================================= */
+        .mode-accessible { 
+            font-size: 1.25rem; 
+            background-color: var(--hc-bg) !important;
+            color: var(--hc-text) !important;
+        }
+        .mode-accessible body {
+            background-color: var(--hc-bg) !important;
+            color: var(--hc-text) !important;
+        }
+        .mode-accessible h1, .mode-accessible h2, .mode-accessible h3, .mode-accessible h4 { 
+            color: var(--hc-text) !important;
+        }
+
+        /* Inputs/Labels (Increased all) */
+        .mode-accessible label, .mode-accessible h3, .mode-accessible .item-details h4 { 
+            font-size: 1.5rem; 
+        }
+        .mode-accessible input, .mode-accessible textarea { 
+            font-size: 1.4rem; 
+            padding: 1.25rem 0.75rem; 
+            background-color: var(--hc-card-bg);
+            color: var(--hc-text);
+            border: 3px solid var(--hc-border);
+        }
+        
+        /* Items/Buttons (Increased all) */
+        .mode-accessible .cat-card, .mode-accessible .store-card, .mode-accessible .item-card {
+            padding: 1.75rem 1.25rem; 
+            background-color: var(--hc-card-bg);
+            border: 3px solid var(--hc-border);
+        }
+        .mode-accessible .cat-icon { font-size: 4rem; } 
+        .mode-accessible .item-qty-btn { font-size: 1.8rem; width: 56px; height: 56px; } 
+
+        /* Summary/Total */
+        .mode-accessible .summary-row, .mode-accessible .order-detail-label {
+            font-size: 1.4rem; 
+        }
+        .mode-accessible .total-amount { font-size: 2.5rem; } 
+
+        /* Action Buttons */
+        .mode-accessible .action-button, .mode-accessible .view-cart-btn {
+            font-size: 1.8rem; 
+            padding: 1.25rem; 
+            font-weight: 800;
+        }
+        
+        .mode-accessible .store-distance, .mode-accessible .store-info-content p {
+            color: var(--hc-border) !important;
+        }
+        .mode-accessible .item-details p {
+            color: var(--hc-border) !important;
+        }
+        .mode-accessible .summary-box {
+            background-color: var(--hc-card-bg);
+            border: 3px solid var(--hc-border);
+        }
+        .mode-accessible .order-review-box {
+            background-color: var(--hc-card-bg);
+            border: 3px solid var(--hc-border);
+        }
+        /* ========================================= */
+
+        /* --- Header Styling (Consistent with ride.html) --- */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 0;
+            position: relative;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        .mode-accessible .app-header {
+            border-bottom: 3px solid var(--hc-border);
+        }
+        .header-title { font-weight: 800; margin: 0; color: var(--color-text); }
+
+        .back-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--color-shopping); /* Accent Color */
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            z-index: 10;
+        }
+        [dir='ltr'] .back-button { left: 0; flex-direction: row; }
+        [dir='rtl'] .back-button { right: 0; flex-direction: row-reverse; }
+        .back-icon { font-size: 1.5rem; margin: 0 0.25rem; }
+        
+        /* --- Wizard Step Views --- */
+        .step-view { 
+            display: none; 
+            padding-bottom: 6rem; 
+            animation: fadeIn 0.3s ease; 
+        }
+        .step-view.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Input/Search Bar Styling (Similar to ride.html) --- */
+        .search-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .search-bar input {
+            flex-grow: 1;
+            border-radius: 9999px;
+            border: 2px solid var(--color-border);
+            padding: 0.75rem 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-bar input:focus {
+             border-color: var(--color-shopping); 
+        }
+        .search-bar button {
+            background-color: var(--color-shopping); 
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            font-size: 1.2rem;
+        }
+        .mode-accessible .search-bar button { color: var(--hc-text); }
+
+
+        /* --- Step 1: Category Grid --- */
+        .category-grid {
+            display: flex; 
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .cat-card {
+            width: 80%;
+            max-width: 300px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-radius: 8px;
+            padding: 1rem;
+            background: white;
+            border: 2px solid #E0E0E0;
+            transition: all 0.2s;
+        }
+        .cat-card.selected { 
+            border-color: var(--color-shopping); 
+            box-shadow: 0 0 0 4px var(--color-highlight); 
+        }
+        .cat-icon { font-size: 2.5rem; margin-bottom: 0.25rem; color: var(--color-shopping); }
+        .cat-card[data-category="pharmacy"] .cat-icon { color: var(--color-success); }
+        .cat-label { font-size: 0.9rem; font-weight: 600; }
+        
+        .help-icon { 
+            background-color: var(--color-success); 
+            color: white; border-radius: 50%; 
+            width: 48px; height: 48px; font-size: 1.2rem;
+            display: grid; place-items: center; 
+            position: fixed; bottom: 6rem; right: 1rem; 
+            z-index: 10;
+        }
+        .mode-accessible .help-icon { color: var(--hc-text); }
+
+
+        /* --- Step 2: Store List --- */
+        .store-list-title { margin-bottom: 1rem; font-size: 1.5rem; font-weight: 700; }
+        .store-card {
+            border-radius: 8px;
+            background: white;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.2s;
+        }
+        .store-card:hover { border-color: var(--color-shopping); } 
+
+        .store-info-content { padding: 1rem; }
+        .store-info-content h4 { margin: 0 0 0.25rem; font-size: 1.2rem; }
+        .store-rating { color: var(--color-success); font-weight: 600; }
+        .store-distance { color: #999; font-size: 0.9rem; }
+        
+        /* --- Step 3: Item Selection --- */
+        .store-details h3 { margin-top: 0; font-size: 1.5rem; }
+        .store-details p { margin: 0 0 1rem; color: #666; }
+
+        .item-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+            background: white;
+        }
+        .mode-accessible .item-card { background: var(--hc-bg); }
+        .mode-accessible .item-card:last-child { border-bottom: none; }
+        
+        .item-info { display: flex; align-items: center; gap: 1rem; }
+        .item-details h4 { margin: 0; font-size: 1.1rem; }
+        .item-details p { margin: 0; color: #666; font-size: 0.9rem; }
+        
+        .item-icon { 
+            width: 60px; height: 60px; border-radius: 4px; 
+            background-color: #f0f0f0; 
+            display: grid; place-items: center;
+            font-size: 2rem;
+        }
+
+        .item-qty-control {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .item-qty-btn {
+            background: var(--color-success);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 1rem;
+        }
+        .mode-accessible .item-qty-btn { color: var(--hc-text); }
+        
+        .item-qty-display { 
+            width: 25px; 
+            text-align: center; 
+            font-weight: 600;
+        }
+        
+        /* Fixed Footer/Cart Button */
+        .fixed-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 1rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 900;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .mode-accessible .fixed-footer { background: var(--hc-bg); box-shadow: 0 -2px 10px rgba(255,255,255,0.1); }
+        
+        .view-cart-btn {
+            width: 100%;
+            background-color: var(--color-success);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 1rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .mode-accessible .view-cart-btn { color: var(--hc-text); }
+
+
+        /* --- Step 4: Order Review --- */
+        .order-review-box { margin-bottom: 1.5rem; }
+        
+        .summary-box {
+            background: #FFFFFF; 
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-top: 0.5rem;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .total-amount {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--color-shopping); 
+        }
+        
+        .input-field { margin-bottom: 1rem; }
+        .input-field label { display: block; font-weight: 600; margin-bottom: 0.25rem; }
+        .input-field input, .input-field textarea {
+            width: 100%;
+            border: 2px solid var(--color-border);
+            border-radius: 4px;
+            padding: 0.75rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-field input:focus, .input-field textarea:focus {
+             border-color: var(--color-shopping); 
+        }
+        .input-field textarea { resize: vertical; min-height: 80px; }
+        .order-detail-label { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; }
+
+        /* --- Modal (S4) --- */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7); justify-content: center; align-items: center; z-index: 2000;
+        }
+        .modal-content {
+            background: white; padding: 2rem; border-radius: 12px;
+            width: 90%; max-width: 400px; text-align: center; border: 4px solid var(--color-success);
+        }
+        .mode-accessible .modal-content {
+            background: var(--hc-card-bg);
+            color: var(--hc-text);
+            border: 4px solid var(--color-success);
+        }
+        .modal-content .action-button { background: var(--color-success); }
+    </style>
+</head>
+<body>
+    <div class="app-container mode-accessible" id="app-container">
+
+        <header class="app-header">
+            <button class="back-button" id="global-back-btn" onclick="handleBack(event)">
+                <span class="back-icon">←</span>
+                <span id="back-label">پیچھے جائیں</span>
+            </button>
+            <h1 class="header-title" id="page-title">دکانیں</h1>
+            <div style="width: 48px; height: 48px;"></div> </header>
+
+        <main id="main-content">
+            
+            <div id="step-1" class="step-view active">
+                <div class="search-bar">
+                    <input type="text" id="shop-search" placeholder="دکانیں تلاش کریں" onclick="speakInputContent(this)">
+                    <button>🔎</button>
+                </div>
+
+                <h3 id="lbl-select-category">Select Category</h3>
+                <div class="category-grid">
+                    <div class="cat-card" data-category="grocery" onclick="selectCategory('Grocery', event)">
+                        <div class="cat-icon">🛒</div>
+                        <span class="cat-label" data-ur="گروسری" data-en="Grocery">گروسری</span>
+                    </div>
+                </div>
+                
+                <button class="help-icon" onclick="speakText('Help: Please select a store category or search for shops.')">?</button>
+            </div>
+
+            <div id="step-2" class="step-view">
+                <h2 class="store-list-title" id="store-list-title">گروسری سٹورز</h2>
+                <div class="store-list" id="store-list">
+                        </div>
+                <button class="help-icon" onclick="speakText('Help: Select a store to view its items.')">?</button>
+            </div>
+
+            <div id="step-3" class="step-view">
+                <div class="store-details">
+                    <h3 id="selected-store-name">Madni General Store</h3>
+                    <p id="selected-store-details">Groceries & Household</p>
+                </div>
+
+                <div class="search-bar" onclick="speakInputContent(document.getElementById('item-search'))">
+                    <input type="text" id="item-search" placeholder="اشیاء تلاش کریں..." style="border: none; border-radius: 9999px; padding: 0.5rem 1rem;">
+                    <button>🔎</button>
+                </div>
+
+                <div class="item-list" id="item-list">
+                        </div>
+            </div>
+
+            <div id="step-4" class="step-view">
+                <h2 class="store-list-title" id="order-title">آپ کا آرڈر</h2>
+                
+                <div class="order-review-box">
+                    <h3 id="order-items-title">منتخب کردہ اشیاء</h3>
+                    <div id="cart-items-review" onclick="speakCartReview()">
+                        </div>
+                </div>
+
+                <h3 id="delivery-details-title" style="margin-top: 1.5rem;">ڈیلیوری کی تفصیلات</h3>
+                <div class="input-field">
+                    <div class="order-detail-label">📍 <label id="label-address">ڈیلیوری کا پتہ</label></div>
+                    <input type="text" id="input-address" value="Clifton Block 7" onclick="speakInputContent(this)">
+                </div>
+                <div class="input-field">
+                    <div class="order-detail-label">📞 <label id="label-contact">رابطہ نمبر</label></div>
+                    <input type="text" id="input-contact" value="+92 300 1234567" onclick="speakInputContent(this)">
+                </div>
+                <div class="input-field">
+                    <div class="order-detail-label">💬 <label id="label-instructions">خاص ہدایات (اختیاری)</label></div>
+                    <textarea id="input-instructions" onclick="speakInputContent(this)">Leave package at door.</textarea>
+                </div>
+
+                <h3 id="summary-details-title" style="margin-top: 1.5rem;">آرڈر کا خلاصہ</h3>
+                <div class="summary-box" onclick="speakSummary()">
+                    <div class="summary-row">
+                        <span id="summary-subtotal">کل قیمت (Subtotal)</span>
+                        <span id="value-subtotal">Rs. 2,300</span>
+                    </div>
+                    <div class="summary-row">
+                        <span id="summary-fee">ڈیلیوری فیس</span>
+                        <span id="value-fee">Rs. 150</span>
+                    </div>
+                    <div class="summary-row" style="border-top: 1px solid #eee; padding-top: 0.5rem;">
+                        <span id="summary-total" class="total-amount">کل رقم</span>
+                        <span id="value-total" class="total-amount">Rs. 2,450</span>
+                    </div>
+                </div>
+                
+                <button class="help-icon" onclick="speakText('Help: Review your order details before placing the order.')">?</button>
+            </div>
+            
+        </main>
+        
+        <div class="fixed-footer" id="fixed-footer">
+            <button class="view-cart-btn action-button" id="footer-action-btn" onclick="handleFooterAction(event)">
+                View Cart → 2 items | Rs. 400
+            </button>
+        </div>
+
+        <div class="modal-overlay" id="modal">
+            <div class="modal-content">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">✅</div>
+                <h3 id="modal-title" style="margin:0; font-size:1.5rem; color:var(--color-success);">آرڈر ہو گیا!</h3>
+                <p id="modal-msg">آپ کے آرڈر کی درخواست کنفرم ہو گئی ہے۔</p>
+                <button class="action-button" onclick="window.location.href='index.html'" id="modal-ok">ٹھیک ہے</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* --- CONFIGURATION & LOCALIZATION DATA --- */
+        const TEXTS = {
+            back: { ur: "پیچھے جائیں", en: "Back" },
+            title1: { ur: "دکانیں", en: "Shops" },
+            title2: { ur: "سٹورز", en: "Stores" },
+            title3: { ur: "اشیاء منتخب کریں", en: "Select Items" },
+            title4: { ur: "آپ کا آرڈر", en: "Your Order" },
+            searchShop: { ur: "دکانیں تلاش کریں", en: "Search for shops" },
+            searchItem: { ur: "اشیاء تلاش کریں...", en: "Search for items..." },
+            help: { ur: "مدد", en: "Help" },
+            catLabel: { ur: "سٹورز", en: "Stores" },
+            storeStatusOpen: { ur: "کھلا ہے", en: "Open" },
+            storeStatusClosed: { ur: "بند ہے", en: "Closed" },
+            itemsSelected: { ur: "اشیاء", en: "items" },
+            orderItemsTitle: { ur: "منتخب کردہ اشیاء", en: "Selected Items" },
+            
+            // Step 3
+            viewCart: { ur: "کارٹ دیکھیں →", en: "View Cart →" },
+            
+            // Step 4
+            lblAddress: { ur: "ڈیلیوری کا پتہ", en: "Delivery Address" },
+            lblContact: { ur: "رابطہ نمبر", en: "Contact Number" },
+            lblInstructions: { ur: "خاص ہدایات (اختیاری)", en: "Special Instructions (Optional)" },
+            summarySubtotal: { ur: "کل قیمت (Subtotal)", en: "Subtotal" },
+            summaryFee: { ur: "ڈیلیوری فیس", en: "Delivery Fee" },
+            summaryTotal: { ur: "کل رقم", en: "Total Amount" },
+            deliveryDetailsTitle: { ur: "ڈیلیوری کی تفصیلات", en: "Delivery Details" },
+            summaryDetailsTitle: { ur: "آرڈر کا خلاصہ", en: "Order Summary" },
+            placeOrder: { ur: "آرڈر دیں", en: "Place Order" },
+            
+            // Modal
+            modalTitle: { ur: "آرڈر ہو گیا!", en: "Order Placed!" },
+            modalMsg: { ur: "آپ کے آرڈر کی درخواست کنفرم ہو گئی ہے۔", en: "Your delivery request has been confirmed." },
+            modalOk: { ur: "ٹھیک ہے", en: "OK" },
+            
+            voicePrompt: { ur: "منتخب کردہ ", en: "Selected " },
+            voiceErrorEmptyCart: { ur: "خرابی: براہ کرم آرڈر کرنے سے پہلے کارٹ میں کچھ اشیاء شامل کریں۔", en: "Error: Please add items to your cart before ordering." },
+            voiceErrorRequired: { ur: "خرابی: براہ کرم اپنا پتہ اور رابطہ نمبر مکمل کریں۔", en: "Error: Please complete your address and contact number." },
+            voiceBack: { ur: "پیچھے جائیں", en: "Back" },
+            voiceToHome: { ur: "ہوم پیج پر واپس جا رہا ہے۔", en: "Returning to home page." },
+        };
+
+        const STORE_DATA = [
+            { name: "Fresh Mart Grocers", rating: 4.5, distance: 1.2, status: "Open", details: "Groceries & Household" },
+            { name: "City Bakery", rating: 4.8, distance: 2.5, status: "Closed", details: "Fresh Bread & Sweets" },
+            { name: "Organic Roots", rating: 3.1, distance: 1.1, status: "Open", details: "Healthy & Organic Produce" },
+            { name: "Madni General Store", rating: 4.2, distance: 0.5, status: "Open", details: "Household Goods" },
+        ];
+
+        const ITEM_DATA = [
+            { id: 1, name: "Basmati Chawal", price: 250, details: "5 kg bag", icon: '🍚' },
+            { id: 2, name: "Cooking Oil", price: 520, details: "1 litre bottle", icon: '🧈' },
+            { id: 3, name: "Milk", price: 180, details: "1 litre carton", icon: '🥛' },
+            { id: 4, name: "Sugar", price: 150, details: "1 kg bag", icon: '🍬' },
+            { id: 5, name: "Tea", price: 400, details: "100g pack", icon: '☕' },
+            { id: 6, name: "Sports Shoes", price: 1200, details: "Nike, Size 9", icon: '👟' },
+            { id: 7, name: "Classic Watch", price: 550, details: "Leather strap", icon: '⌚' },
+        ];
+
+        /* --- STATE --- */
+        let currentStep = 1;
+        let currentLang = localStorage.getItem('appLang') || 'ur';
+        let currentMode = localStorage.getItem('appMode') || 'accessible';
+        let selectedStore = STORE_DATA[0]; 
+        let cart = {
+            1: 2, 
+            3: 1 
+        }; 
+
+        /* --- DOM ELEMENTS --- */
+        const els = {
+            container: document.getElementById('app-container'),
+            step1: document.getElementById('step-1'),
+            step2: document.getElementById('step-2'),
+            step3: document.getElementById('step-3'),
+            step4: document.getElementById('step-4'),
+            pageTitle: document.getElementById('page-title'),
+            globalBackBtn: document.getElementById('global-back-btn'),
+            fixedFooter: document.getElementById('fixed-footer'),
+            footerActionBtn: document.getElementById('footer-action-btn'),
+            storeList: document.getElementById('store-list'),
+            itemList: document.getElementById('item-list'),
+            orderReviewItems: document.getElementById('cart-items-review'),
+            modal: document.getElementById('modal'),
+        };
+
+        // TTS Initialization
+        const synth = window.speechSynthesis;
+        let voices = [];
+        if (synth) {
+            synth.onvoiceschanged = () => { voices = synth.getVoices(); };
+            synth.onvoiceschanged(); 
+        }
+
+        /**
+         * Performs navigation (SPA or MPA) *without* an artificial delay.
+         * Relies on the caller (speakText.onend) to handle timing in accessible mode.
+         */
+        function performNavigation(target, isMPA = false) {
+            if (isMPA) {
+                window.location.href = target;
+            } else {
+                currentStep = target;
+                switchView();
+            }
+        }
+
+        /**
+         * Converts text to speech. Accepts an optional callback to run on speech end.
+         */
+        function speakText(text, callback = null) {
+            if (!synth || currentMode !== 'accessible') {
+                if (callback) setTimeout(callback, 50);
+                return;
+            }
+            synth.cancel();
+
+            if (voices.length === 0) voices = synth.getVoices();
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            let langCode = currentLang === 'ur' ? 'ur-PK' : 'en-US';
+            const voice = voices.find(v => v.lang.startsWith(langCode.substring(0, 2))); 
+            if (voice) utterance.voice = voice;
+            else utterance.lang = langCode;
+
+            utterance.rate = 1.0; 
+            
+            if (callback) {
+                // Ensure navigation is called only upon successful speech end
+                utterance.onend = callback;
+                utterance.onerror = callback; // Handle errors by still proceeding
+            }
+
+            synth.speak(utterance);
+        }
+        
+        /**
+         * Global handler for clicks on non-interactive text elements.
+         */
+        function handleTextClick(event) {
+             if (currentMode !== 'accessible') return;
+             
+             const target = event.target;
+             
+             // Ignore elements that already have specific click handlers for speech/action
+             if (target.tagName === 'BUTTON' || target.closest('button') || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.closest('.cat-card') || target.closest('.store-card') || target.closest('.item-card') || target.closest('.summary-box') || target.closest('.order-review-box') || target.closest('.help-icon') || target.closest('#fixed-footer')) {
+                 return;
+             }
+             
+             const textToSpeak = target.textContent.trim();
+             
+             if (textToSpeak.length > 0) {
+                 speakText(textToSpeak);
+             }
+        }
+        
+        /**
+         * Announces the content of an input element when clicked.
+         */
+        function speakInputContent(inputElement) {
+            if (currentMode !== 'accessible') return;
+            
+            // Determine the label text
+            let labelElement = inputElement.closest('.input-field') ? inputElement.closest('.input-field').querySelector('label') : null;
+            let labelText = labelElement ? labelElement.textContent : inputElement.placeholder;
+
+            if (inputElement.tagName === 'TEXTAREA') {
+                // Special case for instructions textarea
+                labelText = document.getElementById('label-instructions').textContent;
+            }
+
+            let content = inputElement.value || inputElement.placeholder;
+            
+            speakText(`${labelText}. Current content: ${content}.`);
+        }
+
+        function speakStoreDetails(store) {
+            if (currentMode !== 'accessible') return;
+            const statusText = store.status === 'Open' ? TEXTS.storeStatusOpen[currentLang] : TEXTS.storeStatusClosed[currentLang];
+            const message = `${TEXTS.voicePrompt[currentLang]}${store.name}. Rating ${store.rating} stars. ${store.distance} kilometers away. Status: ${statusText}.`;
+            speakText(message);
+        }
+        
+        function speakItemQuantity(itemId, qty, itemName, itemPrice) {
+            if (currentMode !== 'accessible') return;
+            const item = ITEM_DATA.find(i => i.id == itemId);
+            const message = `${item.name}. Quantity: ${qty}. Price: ${itemPrice} rupees.`;
+            speakText(message);
+        }
+        
+        function speakCartReview() {
+            if (currentMode !== 'accessible') return;
+            const { subtotal, totalItems } = calculateCartTotal();
+            if (totalItems === 0) {
+                 speakText(TEXTS.voiceErrorEmptyCart[currentLang]);
+                 return;
+            }
+            
+            let message = `${TEXTS.orderItemsTitle[currentLang]}. You have ${totalItems} items. `;
+            
+            for (const itemId in cart) {
+                 const qty = cart[itemId];
+                 const item = ITEM_DATA.find(i => i.id == itemId);
+                 message += `${qty} of ${item.name}. `;
+            }
+            speakText(message);
+        }
+        
+        function speakSummary() {
+            if (currentMode !== 'accessible') return;
+            const subtotal = document.getElementById('value-subtotal').textContent;
+            const fee = document.getElementById('value-fee').textContent;
+            const total = document.getElementById('value-total').textContent;
+            
+            const message = `${TEXTS.summaryDetailsTitle[currentLang]}. ${TEXTS.summarySubtotal[currentLang]} ${subtotal}. ${TEXTS.summaryFee[currentLang]} ${fee}. ${TEXTS.summaryTotal[currentLang]} ${total}.`;
+            speakText(message);
+        }
+
+        /* --- INITIALIZATION --- */
+        function init() {
+            const persistedLang = localStorage.getItem('appLang') || 'ur';
+            const persistedMode = localStorage.getItem('appMode') || 'accessible';
+            currentLang = persistedLang;
+            currentMode = persistedMode;
+            
+            document.documentElement.lang = currentLang;
+            document.documentElement.dir = currentLang === 'ur' ? 'rtl' : 'ltr';
+            els.container.className = `app-container mode-${currentMode}`;
+            
+            // Attach global listener for non-interactive text
+            els.container.addEventListener('click', handleTextClick);
+            
+            updateTexts();
+            goToStep(1); 
+             // Initial Voice Announcement (delayed for stability)
+             setTimeout(() => {
+                 const titleKey = `title${currentStep}`;
+                 speakText(TEXTS[titleKey][currentLang]);
+             }, 800);
+        }
+
+        /* --- LOGIC: CART MANAGEMENT --- */
+        function calculateCartTotal() {
+            let subtotal = 0;
+            let totalItems = 0;
+            for (const itemId in cart) {
+                const item = ITEM_DATA.find(i => i.id == itemId);
+                if (item) {
+                    subtotal += item.price * cart[itemId];
+                    totalItems += cart[itemId];
+                }
+            }
+            return { subtotal, totalItems, deliveryFee: 150 };
+        }
+
+        function updateItemQuantity(itemId, change, event) {
+            if (currentMode === 'accessible') event.preventDefault();
+            
+            itemId = parseInt(itemId);
+            const currentQty = cart[itemId] || 0;
+            const newQty = currentQty + change;
+            const item = ITEM_DATA.find(i => i.id == itemId);
+
+            if (newQty > 0) {
+                cart[itemId] = newQty;
+            } else {
+                delete cart[itemId];
+            }
+            
+            // Rerender depending on the current view
+            if (currentStep === 3) renderItemList();
+            if (currentStep === 4) renderOrderReview();
+
+            updateFooter();
+            
+            if (currentMode === 'accessible') {
+                 const action = change > 0 ? 'Increased' : (newQty === 0 ? 'Removed' : 'Decreased');
+                 const total = newQty * item.price;
+                 speakText(`${item.name} quantity ${action}. Total quantity is ${newQty}. Total item price: ${total} rupees.`);
+            }
+        }
+
+        /* --- LOGIC: RENDERERS --- */
+        function renderStoreList() {
+            els.storeList.innerHTML = STORE_DATA.map(store => {
+                const isOpen = store.status === 'Open';
+                const statusText = isOpen ? TEXTS.storeStatusOpen[currentLang] : TEXTS.storeStatusClosed[currentLang];
+
+                return `
+                    <div class="store-card" onclick="selectStore('${store.name}', '${store.details}', event)">
+                        <div style="height: 120px; background-color: #E0E0E0; position: relative;">
+                            <span class="store-status" style="position: absolute; bottom: 0; right: 0; background-color: ${isOpen ? 'var(--color-success)' : 'gray'}; color: white; padding: 0.25rem 0.75rem; border-top-left-radius: 8px; font-weight: 600;">${statusText}</span>
+                            <div style="font-size: 3rem; color: #999; text-align: center; line-height: 120px;">🛒</div>
+                        </div>
+                        <div class="store-info-content">
+                            <h4>${store.name}</h4>
+                            <p style="margin: 0; color: #666; font-size: 0.9rem;">${store.details}</p>
+                            <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
+                                <span class="store-rating">★ ${store.rating}</span>
+                                <span class="store-distance">${store.distance} km away</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderItemList() {
+            document.getElementById('selected-store-name').textContent = selectedStore.name;
+            document.getElementById('selected-store-details').textContent = selectedStore.details;
+
+            els.itemList.innerHTML = ITEM_DATA.map(item => {
+                const qty = cart[item.id] || 0;
+                
+                return `
+                    <div class="item-card" onclick="speakItemQuantity(${item.id}, ${qty}, '${item.name}', ${item.price})">
+                        <div class="item-info">
+                            <div class="item-icon" style="color: var(--color-shopping);">${item.icon}</div>
+                            <div class="item-details">
+                                <h4>${item.name}</h4>
+                                <p>Rs. ${item.price} | ${item.details}</p>
+                            </div>
+                        </div>
+                        <div class="item-qty-control" data-item-id="${item.id}">
+                            <button class="item-qty-btn" onclick="updateItemQuantity(${item.id}, -1, event)">-</button>
+                            <span class="item-qty-display">${qty}</span>
+                            <button class="item-qty-btn" onclick="updateItemQuantity(${item.id}, 1, event)">+</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderOrderReview() {
+            const { subtotal, totalItems, deliveryFee } = calculateCartTotal();
+            const total = subtotal + deliveryFee;
+
+            let reviewHTML = '';
+            for (const itemId in cart) {
+                const qty = cart[itemId];
+                const item = ITEM_DATA.find(i => i.id == itemId);
+                if (item) {
+                    reviewHTML += `
+                        <div class="item-card" style="padding: 0.75rem 0;">
+                            <div class="item-info" style="gap: 1.5rem;">
+                                <div class="item-details">
+                                    <h4>${item.name}</h4>
+                                    <p>Rs. ${item.price}</p>
+                                </div>
+                            </div>
+                            <div style="text-align: right; font-weight: bold;">
+                                <span>${qty} x</span>
+                                <span style="font-size: 1.1rem; color: var(--color-price);">Rs. ${(item.price * qty).toLocaleString()}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            els.orderReviewItems.innerHTML = reviewHTML;
+
+            document.getElementById('value-subtotal').textContent = `Rs. ${subtotal.toLocaleString()}`;
+            document.getElementById('value-fee').textContent = `Rs. ${deliveryFee}`;
+            document.getElementById('value-total').textContent = `Rs. ${total.toLocaleString()}`;
+            
+            updateTexts();
+        }
+
+        function updateFooter() {
+            const { subtotal, totalItems } = calculateCartTotal();
+            const actionTextKey = currentStep === 3 ? 'viewCart' : 'placeOrder';
+            const actionText = TEXTS[actionTextKey][currentLang];
+            
+            if ((currentStep === 3 || currentStep === 4) && totalItems > 0) {
+                els.fixedFooter.style.display = 'block';
+                if (currentStep === 3) {
+                    els.footerActionBtn.textContent = `${actionText} ${totalItems} ${TEXTS.itemsSelected[currentLang]} | Rs. ${subtotal.toLocaleString()}`;
+                    els.footerActionBtn.classList.remove('final-place-order-btn');
+                } else if (currentStep === 4) {
+                    els.footerActionBtn.textContent = TEXTS.placeOrder[currentLang];
+                    els.footerActionBtn.classList.add('final-place-order-btn');
+                }
+                els.footerActionBtn.style.backgroundColor = 'var(--color-success)';
+            } else {
+                 els.fixedFooter.style.display = 'none';
+            }
+        }
+
+        /* --- LOGIC: ACTIONS --- */
+        function selectCategory(categoryName, event) {
+            const navigateToStep2 = () => performNavigation(2);
+
+            if (currentMode === 'accessible') {
+                 event.preventDefault();
+                 speakText(`${TEXTS.voicePrompt[currentLang]}${categoryName}. Loading stores.`, navigateToStep2);
+            } else {
+                navigateToStep2();
+            }
+
+            document.querySelectorAll('.cat-card').forEach(card => card.classList.remove('selected'));
+            document.querySelector(`.cat-card[data-category="${categoryName.toLowerCase()}"]`).classList.add('selected');
+        }
+
+        function selectStore(name, details, event) {
+            const store = STORE_DATA.find(s => s.name === name);
+            const navigateToStep3 = () => performNavigation(3);
+
+            if (currentMode === 'accessible') {
+                 event.preventDefault();
+                 speakStoreDetails(store);
+                 speakText(`Selected store ${name}. Loading items.`, navigateToStep3);
+            } else {
+                navigateToStep3();
+            }
+            selectedStore = store; 
+        }
+        
+        function handleFooterAction(event) {
+            const { totalItems } = calculateCartTotal();
+            
+            if (currentStep === 3) {
+                const navigateToStep4 = () => performNavigation(4);
+                
+                if (totalItems === 0) {
+                    if (currentMode === 'accessible') {
+                         event.preventDefault();
+                         speakText(TEXTS.voiceErrorEmptyCart[currentLang]);
+                    } else {
+                         alert(TEXTS.voiceErrorEmptyCart[currentLang]);
+                    }
+                    return;
+                }
+                
+                if (currentMode === 'accessible') {
+                     event.preventDefault();
+                     speakText(TEXTS.viewCart[currentLang] + ". Proceeding to order review.", navigateToStep4);
+                } else {
+                    navigateToStep4();
+                }
+
+            } else if (currentStep === 4) {
+                const address = document.getElementById('input-address').value;
+                const contact = document.getElementById('input-contact').value;
+                
+                const navigateToConfirmation = () => performNavigation('confirmation.html', true);
+
+                if (!address || !contact) {
+                      if (currentMode === 'accessible') {
+                          event.preventDefault();
+                          speakText(TEXTS.voiceErrorRequired[currentLang]);
+                      } else {
+                          alert(TEXTS.voiceErrorRequired[currentLang]);
+                      }
+                      return;
+                }
+                
+                if (currentMode === 'accessible') {
+                      event.preventDefault();
+                      speakText(TEXTS.placeOrder[currentLang] + ". " + TEXTS.modalMsg[currentLang] + ". Returning to main menu.", navigateToConfirmation);
+                } else {
+                      navigateToConfirmation();
+                }
+            }
+        }
+
+        /* --- LOGIC: NAVIGATION --- */
+        function goToStep(step) {
+            currentStep = step;
+            switchView();
+        }
+
+        function handleBack(event) {
+            const navigateBack = () => {
+                if (currentStep === 1) {
+                    performNavigation('index.html', true);
+                } else {
+                    currentStep--;
+                    switchView();
+                    // Announce new view title AFTER switch is complete
+                    if (currentMode === 'accessible') {
+                        const titleKey = `title${currentStep}`;
+                        speakText("Now on " + TEXTS[titleKey][currentLang]);
+                    }
+                }
+            };
+            
+            if (currentMode === 'accessible') {
+                 event.preventDefault();
+                 const exitMessage = (currentStep === 1) ? TEXTS.back[currentLang] + " " + TEXTS.voiceToHome[currentLang] : TEXTS.voiceBack[currentLang] + ". Going back to previous screen.";
+                 speakText(exitMessage, navigateBack);
+            } else {
+                navigateBack();
+            }
+        }
+
+        function switchView() {
+            // Hide all steps
+            els.step1.classList.remove('active');
+            els.step2.classList.remove('active');
+            els.step3.classList.remove('active');
+            els.step4.classList.remove('active');
+
+            // Show current step and update content
+            if (currentStep === 1) {
+                els.step1.classList.add('active');
+            } else if (currentStep === 2) {
+                els.step2.classList.add('active');
+                renderStoreList();
+            } else if (currentStep === 3) {
+                els.step3.classList.add('active');
+                renderItemList();
+            } else if (currentStep === 4) {
+                els.step4.classList.add('active');
+                renderOrderReview();
+            }
+
+            updateTexts();
+            updateFooter();
+        }
+
+        function showModal(title, message) {
+            els.modal.style.display = 'flex';
+            if (currentMode === 'accessible') speakText(`${title}. ${message}`);
+        }
+
+        /* --- UTIL: UI UPDATES --- */
+        function updateTexts() {
+            const lang = currentLang;
+
+            const titleKey = `title${currentStep}`;
+            els.pageTitle.textContent = TEXTS[titleKey] ? TEXTS[titleKey][lang] : TEXTS.title1[lang];
+            document.getElementById('back-label').textContent = TEXTS.back[lang];
+            
+            if (currentStep === 1) {
+                 if(document.getElementById('shop-search')) document.getElementById('shop-search').placeholder = TEXTS.searchShop[lang];
+                 if(document.getElementById('lbl-select-category')) document.getElementById('lbl-select-category').textContent = 'Select Category'; // No translation for this specific label
+            }
+            
+            if (currentStep === 2) {
+                 document.getElementById('store-list-title').textContent = TEXTS.title2[lang];
+                 document.querySelectorAll('.store-status').forEach(statusEl => {
+                     const statusText = statusEl.textContent.includes('Open') ? TEXTS.storeStatusOpen[lang] : TEXTS.storeStatusClosed[lang];
+                     statusEl.textContent = statusText;
+                 });
+            }
+
+            if (currentStep === 3) {
+                 if (document.getElementById('item-search')) document.getElementById('item-search').placeholder = TEXTS.searchItem[lang];
+            }
+
+            if (currentStep === 4) {
+                 document.getElementById('order-title').textContent = TEXTS.title4[lang];
+                 document.getElementById('order-items-title').textContent = TEXTS.orderItemsTitle[lang];
+                 document.getElementById('delivery-details-title').textContent = TEXTS.deliveryDetailsTitle[lang];
+                 document.getElementById('summary-details-title').textContent = TEXTS.summaryDetailsTitle[lang];
+                 
+                 document.getElementById('label-address').textContent = TEXTS.lblAddress[lang];
+                 document.getElementById('label-contact').textContent = TEXTS.lblContact[lang];
+                 document.getElementById('label-instructions').textContent = TEXTS.lblInstructions[lang];
+                 
+                 document.getElementById('summary-subtotal').textContent = TEXTS.summarySubtotal[lang];
+                 document.getElementById('summary-fee').textContent = TEXTS.summaryFee[lang];
+                 document.getElementById('summary-total').textContent = TEXTS.summaryTotal[lang];
+            }
+
+            document.getElementById('modal-title').textContent = TEXTS.modalTitle[lang];
+            document.getElementById('modal-msg').textContent = TEXTS.modalMsg[lang];
+            document.getElementById('modal-ok').textContent = TEXTS.modalOk[lang];
+
+            updateFooter();
+        }
+
+        // Run
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

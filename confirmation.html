@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation | تصدیق</title>
+    <style>
+        /* Shared Styles (Minimal set for consistency) */
+        :root {
+            --color-text: #212121;
+            --color-bg: #FAFAFA;
+            --color-success: #388E3C; /* Green for Confirmation */
+            
+            /* High Contrast Colors */
+            --hc-bg: #000000;
+            --hc-text: #FFFFFF;
+            --hc-card-bg: #222222;
+            --hc-border: #AAAAAA;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            padding: 2rem;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        /* RTL/LTR Handling */
+        [dir="rtl"] { text-align: right; }
+        [dir="ltr"] { text-align: left; }
+
+        /* Large Touch Targets Base */
+        button {
+            min-height: 48px;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+
+        /* ========================================= */
+        /* === ACCESSIBILITY SCALING (GLOBAL) - HIGH CONTRAST === */
+        /* ========================================= */
+        .mode-accessible { 
+            background-color: var(--hc-bg) !important;
+            color: var(--hc-text) !important;
+        }
+        .mode-accessible body {
+            background-color: var(--hc-bg) !important;
+            color: var(--hc-text) !important;
+        }
+        .mode-accessible .confirmation-box {
+            background: var(--hc-card-bg);
+            border: 5px solid var(--color-success);
+            box-shadow: none;
+        }
+
+        .mode-accessible .status-icon { 
+            font-size: 8rem; 
+        }
+
+        .mode-accessible .status-message { 
+            font-size: 3rem; 
+            color: var(--color-success) !important;
+        }
+
+        .mode-accessible .status-detail { 
+            font-size: 1.8rem; 
+            color: var(--hc-border) !important;
+        }
+
+        .mode-accessible .action-button { 
+            font-size: 1.8rem; 
+            padding: 1.25rem 0; 
+            font-weight: 800;
+            color: var(--hc-text) !important; 
+        }
+
+        /* Standard Mode Styles */
+        .mode-standard .status-message { font-size: 1.5rem; }
+        .mode-standard .status-detail { font-size: 1rem; }
+        .mode-standard .action-button { font-size: 1.1rem; padding: 0.75rem 0; }
+        .mode-standard .status-icon { font-size: 5rem; }
+        /* ========================================= */
+
+
+        .confirmation-box {
+            background: white;
+            border: 5px solid var(--color-success);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-icon {
+            color: var(--color-success);
+            margin-bottom: 1rem;
+        }
+
+        .status-message {
+            color: var(--color-success);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-detail {
+            color: #757575;
+            margin-bottom: 2rem;
+        }
+        
+        /* Action Button Consistency (V. System Messages) */
+        .action-button {
+            width: 100%;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            transition: background-color 0.2s;
+            background-color: var(--color-success);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="app-container" id="app-container">
+        <div class="confirmation-box">
+            <div class="status-icon">✅</div>
+            <h2 class="status-message" id="status-message">بکنگ کی توثیق ہو گئی ہے!</h2>
+            <p class="status-detail" id="status-detail">آپ کی سواری جلد ہی آ رہی ہے۔</p>
+            
+            <button class="action-button" onclick="handleOk(event)" id="ok-button">ٹھیک ہے</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration object for localized text on THIS page
+        const TEXTS = {
+            message: { ur: "بکنگ کی توثیق ہو گئی ہے!", en: "Booking Confirmed!" },
+            detail: { ur: "آپ کی سواری جلد ہی آ رہی ہے۔", en: "Your ride is arriving shortly." },
+            ok: { ur: "ٹھیک ہے", en: "OK" },
+            returnHome: { ur: "واپس مین مینیو پر جا رہے ہیں", en: "Returning to main menu." }
+        };
+
+        const ELEMENTS = {
+            appContainer: document.getElementById('app-container'),
+            html: document.documentElement,
+            statusMessage: document.getElementById('status-message'),
+            statusDetail: document.getElementById('status-detail'),
+            okButton: document.getElementById('ok-button'),
+        };
+
+        let currentLang = localStorage.getItem('appLang') || 'ur';
+        let currentMode = localStorage.getItem('appMode') || 'accessible';
+
+        // TTS Initialization
+        const synth = window.speechSynthesis;
+        let voices = [];
+        if (synth) {
+            synth.onvoiceschanged = () => { voices = synth.getVoices(); };
+            synth.onvoiceschanged(); 
+        }
+
+        /**
+         * Converts text to speech.
+         * @param {string} text The text to be spoken.
+         */
+        function speakText(text) {
+            if (!synth || currentMode !== 'accessible') return;
+            synth.cancel();
+
+            if (voices.length === 0) voices = synth.getVoices();
+            const utterance = new SpeechSynthesisUtterance(text);
+            let langCode = currentLang === 'ur' ? 'ur-PK' : 'en-US';
+            const voice = voices.find(v => v.lang.startsWith(langCode.substring(0, 2))); 
+            if (voice) utterance.voice = voice;
+            else utterance.lang = langCode;
+
+            utterance.rate = 1.0; 
+            synth.speak(utterance);
+            return utterance; // Return utterance object
+        }
+
+        function updateUI(lang, mode) {
+            // 1. Apply Global Direction and Mode Class
+            ELEMENTS.html.dir = lang === 'ur' ? 'rtl' : 'ltr';
+            ELEMENTS.html.lang = lang;
+            ELEMENTS.appContainer.className = `app-container mode-${mode}`;
+
+            // 2. Update Texts
+            ELEMENTS.statusMessage.textContent = TEXTS.message[lang];
+            ELEMENTS.statusDetail.textContent = TEXTS.detail[lang];
+            ELEMENTS.okButton.textContent = TEXTS.ok[lang];
+            
+            // 3. Announce status on load
+            if (mode === 'accessible') {
+                 setTimeout(() => {
+                     const message = `${TEXTS.message[lang]}. ${TEXTS.detail[lang]}.`;
+                     speakText(message);
+                 }, 500);
+            }
+        }
+        
+        /**
+         * Global handler for clicks on non-interactive text elements.
+         */
+        function handleTextClick(event) {
+            if (currentMode !== 'accessible') return;
+            
+            const target = event.target;
+            
+            if (target.tagName === 'BUTTON' || target.closest('a') || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+                return;
+            }
+
+            const textToSpeak = target.textContent.trim();
+            
+            if (textToSpeak.length > 0) {
+                speakText(textToSpeak);
+            }
+        }
+        
+        /**
+         * Handles the OK button click, speaking the confirmation and then navigating.
+         */
+        function handleOk(event) {
+             if (currentMode === 'accessible') {
+                 event.preventDefault();
+                 const utterance = speakText(`${TEXTS.ok[currentLang]}. ${TEXTS.returnHome[currentLang]}`);
+                 
+                 const navigate = () => {
+                     window.location.href = 'index.html';
+                 };
+                 
+                 if (utterance) {
+                     utterance.onend = navigate;
+                 } else {
+                     // Fallback if utterance is null (API blocked/busy)
+                     setTimeout(navigate, 1000); 
+                 }
+             } else {
+                 window.location.href = 'index.html';
+             }
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const persistedLang = localStorage.getItem('appLang') || 'ur';
+            const persistedMode = localStorage.getItem('appMode') || 'accessible';
+            
+            currentLang = persistedLang;
+            currentMode = persistedMode;
+            updateUI(persistedLang, persistedMode);
+            
+            // ** NEW: Global Click Listener for text reading **
+            ELEMENTS.appContainer.addEventListener('click', handleTextClick);
+        });
+    </script>
+</body>
+</html>

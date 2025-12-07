@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>آسان سروس | Asaan Service</title>
+    <style>
+        /* I. Global UI Principles and Defaults */
+        :root {
+            --color-text: #212121;
+            --color-bg: #FAFAFA; 
+            --color-urdu-active: #3949AB; 
+            --color-accessible-active: #D81B60; 
+            --color-delivery: #00796B; 
+            --color-ride: #D81B60; 
+            --color-shopping: #FBC02D; 
+            
+            /* High Contrast Colors */
+            --hc-bg: #000000;
+            --hc-text: #FFFFFF;
+            --hc-card-bg: #222222;
+            --hc-border: #AAAAAA;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            padding: 1rem;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* RTL/LTR Handling */
+        [dir="rtl"] { text-align: right; }
+        [dir="ltr"] { text-align: left; }
+
+        /* Large Touch Targets Base */
+        button, .card, input, textarea {
+            min-height: 48px;
+            cursor: pointer;
+            box-sizing: border-box; 
+        }
+
+        /* ========================================= */
+        /* === ACCESSIBILITY SCALING (GLOBAL) - HIGH CONTRAST === */
+        /* ========================================= */
+        .mode-accessible { 
+            font-size: 1.25rem; 
+            background-color: var(--hc-bg) !important;
+            color: var(--hc-text) !important;
+        }
+        .mode-accessible body {
+            background-color: var(--hc-bg) !important;
+            color: var(--hc-text) !important;
+        }
+
+        /* Card Colors (Dark Card on Black BG) */
+        .mode-accessible .card { 
+            background: var(--hc-card-bg); 
+            color: var(--hc-text);
+            border: 3px solid var(--hc-border); 
+            box-shadow: none; 
+        }
+        .mode-accessible .card:hover {
+             box-shadow: 0 0 0 4px var(--color-accessible-active); 
+        }
+        
+        /* Titles and Subtitles */
+        .mode-accessible .app-title { font-size: 3rem; } 
+        .mode-accessible .app-subtitle { font-size: 2rem; } 
+        
+        /* Toggles */
+        .mode-accessible .toggle-btn { 
+            font-size: 1.5rem; 
+            padding: 1.25rem 0;
+            border-width: 3px; 
+        }
+
+        /* Language Toggle Colors */
+        .mode-accessible .toggle-lang.active {
+            background-color: var(--color-urdu-active);
+            color: var(--hc-text);
+            border-color: var(--color-urdu-active);
+        }
+        .mode-accessible .toggle-lang.inactive {
+            background-color: var(--hc-bg);
+            color: var(--color-urdu-active);
+            border-color: var(--color-urdu-active);
+        }
+
+        /* Mode Toggle Colors */
+        .mode-accessible .toggle-mode.active {
+            background-color: var(--color-accessible-active);
+            color: var(--hc-text);
+            border-color: var(--color-accessible-active);
+        }
+        .mode-accessible .toggle-mode.inactive {
+            background-color: var(--hc-bg);
+            color: var(--color-accessible-active);
+            border-color: var(--color-accessible-active);
+        }
+
+        /* Card Icons/Labels */
+        .mode-accessible .card-icon { font-size: 5rem; }
+        .mode-accessible .card-label { font-size: 1.5rem; font-weight: 700; } 
+        
+        .mode-accessible .toggle-section {
+             border-bottom: 3px solid var(--hc-border);
+        }
+        /* ========================================= */
+
+
+        /* II. Header and Accessibility Toggles */
+        .app-header {
+            padding: 1rem 0 2rem;
+            text-align: center;
+        }
+        
+        .app-title { font-weight: 800; margin: 0.5rem 0; }
+        .app-subtitle { font-weight: 500; margin-bottom: 1.5rem; }
+
+
+        /* A & B. Toggle Group Styling */
+        .toggle-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #E0E0E0;
+            padding-bottom: 1.5rem;
+        }
+
+        .toggle-row {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            max-width: 180px;
+            border-radius: 9999px; 
+            font-weight: 600;
+            transition: all 0.2s;
+            border: 2px solid var(--color-text);
+        }
+
+        /* Standard Toggle Colors */
+        .toggle-lang.active {
+            background-color: var(--color-urdu-active);
+            color: white;
+            border-color: var(--color-urdu-active);
+        }
+        .toggle-lang.inactive {
+            background-color: white;
+            color: var(--color-urdu-active);
+            border-color: var(--color-urdu-active);
+        }
+
+        .toggle-mode.active {
+            background-color: var(--color-accessible-active);
+            color: white;
+            border-color: var(--color-accessible-active);
+        }
+        .toggle-mode.inactive {
+            background-color: white;
+            color: var(--color-accessible-active);
+            border-color: var(--color-accessible-active);
+        }
+
+        /* III. Service Selection Cards */
+        .service-cards-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: white;
+            transition: all 0.2s ease-out;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #757575; 
+            text-decoration: none; 
+            color: var(--color-text);
+            text-align: center;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .icon-container {
+            margin-bottom: 0.25rem;
+        }
+
+        .card-delivery .card-icon { color: var(--color-delivery); }
+        .card-ride .card-icon { color: var(--color-ride); }
+        .card-shopping .card-icon { color: var(--color-shopping); }
+
+    </style>
+</head>
+<body>
+    <div class="app-container" id="app-container">
+
+        <header class="app-header">
+            <h1 class="app-title" id="app-title">آسان سروس</h1>
+            <p class="app-subtitle" id="app-subtitle">اپنی سروس کا انتخاب کریں۔</p>
+
+            <div class="toggle-section lang-selector">
+                <div class="toggle-row">
+                    <button class="toggle-btn toggle-lang" data-lang="ur" id="lang-ur">اردو</button>
+                    <button class="toggle-btn toggle-lang" data-lang="en" id="lang-en">English</button>
+                </div>
+            </div>
+            
+            <div class="toggle-section mode-selector">
+                <div class="toggle-row">
+                    <button class="toggle-btn toggle-mode" data-mode="accessible" id="mode-accessible">بڑا ٹیکسٹ</button>
+                    <button class="toggle-btn toggle-mode" data-mode="standard" id="mode-standard">معیاری</button>
+                </div>
+            </div>
+        </header>
+
+        <main id="main-content">
+            <p class="app-subtitle" id="service-prompt">خدمت کا انتخاب کریں</p>
+            <div class="service-cards-container" id="service-cards">
+                
+                <a href="delivery.html" class="card card-delivery" data-service="delivery" 
+                    onclick="return handleCardClick(event, this)">
+                    <div class="icon-container card-icon">🚚</div>
+                    <span class="card-label" data-label-ur="دستی رسائی" data-label-en="Delivery">دستی رسائی</span>
+                </a>
+                
+                <a href="ride.html" class="card card-ride" data-service="ride" 
+                    onclick="return handleCardClick(event, this)">
+                    <div class="icon-container card-icon">🚗</div>
+                    <span class="card-label" data-label-ur="سواری" data-label-en="Ride Sharing">سواری</span>
+                </a>
+
+                <a href="shopping.html" class="card card-shopping" data-service="shopping" 
+                    onclick="return handleCardClick(event, this)">
+                    <div class="icon-container card-icon">🛒</div>
+                    <span class="card-label" data-label-ur="خریداری" data-label-en="Shopping">خریداری</span>
+                </a>
+                
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Configuration object for all localized text
+        const TEXTS = {
+            title: { ur: "آسان سروس", en: "Asaan Service" },
+            subtitle: { ur: "اپنی سروس کا انتخاب کریں۔", en: "Select your service." },
+            servicePrompt: { ur: "خدمت کا انتخاب کریں", en: "Select a service" },
+            langUr: { ur: "اردو", en: "Urdu" },
+            langEn: { ur: "انگریزی", en: "English" },
+            modeAccessible: { ur: "بڑا ٹیکسٹ", en: "Large Text" },
+            modeStandard: { ur: "معیاری", en: "Standard" },
+            
+            // Voice Prompts
+            voicePrompt: {
+                 ur: "منتخب کردہ: ",
+                 en: "Selected: "
+            }
+        };
+
+        const ELEMENTS = {
+            appContainer: document.getElementById('app-container'),
+            appTitle: document.getElementById('app-title'),
+            appSubtitle: document.getElementById('app-subtitle'),
+            servicePrompt: document.getElementById('service-prompt'),
+            html: document.documentElement,
+            langUrBtn: document.getElementById('lang-ur'),
+            langEnBtn: document.getElementById('lang-en'),
+            modeAccBtn: document.getElementById('mode-accessible'),
+            modeStdBtn: document.getElementById('mode-standard'),
+        };
+
+        // --- State Management: Check localStorage for persistence (Crucial for MPA) ---
+        let currentLang = localStorage.getItem('appLang') || 'ur'; // Default: Urdu
+        let currentMode = localStorage.getItem('appMode') || 'accessible'; // Default: Accessible
+        
+        // TTS Initialization
+        const synth = window.speechSynthesis;
+        let voices = [];
+        
+        function getVoices() {
+            voices = synth.getVoices();
+        }
+        
+        if (synth) {
+            getVoices(); 
+            synth.onvoiceschanged = getVoices;
+        }
+
+        /**
+         * Converts text to speech using the appropriate language voice.
+         * @param {string} text The text to be spoken.
+         */
+        function speakText(text) {
+            if (!synth || currentMode !== 'accessible') return;
+
+            synth.cancel();
+            
+            if (voices.length === 0) getVoices();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            let langCode = currentLang === 'ur' ? 'ur-PK' : 'en-US';
+            
+            // Try to find a suitable voice by base language code
+            const voice = voices.find(v => v.lang.startsWith(langCode.substring(0, 2))); 
+            if (voice) {
+                utterance.voice = voice;
+            } else {
+                utterance.lang = langCode;
+            }
+
+            utterance.rate = 1.0; 
+            synth.speak(utterance);
+        }
+
+        /**
+         * Handles the click event for service cards.
+         * Speaks the service name and delays navigation until speech is complete.
+         * @param {Event} event The click event object.
+         * @param {HTMLElement} cardElement The <a> element that was clicked.
+         * @returns {boolean} Should return false in accessible mode to prevent immediate navigation.
+         */
+        function handleCardClick(event, cardElement) {
+             if (currentMode !== 'accessible') return true; 
+
+            // 1. Prevent default navigation immediately
+            event.preventDefault(); 
+
+            // 2. Get text to speak (card label)
+            const labelElement = cardElement.querySelector('.card-label');
+            const spokenText = labelElement.textContent;
+            
+            const prompt = TEXTS.voicePrompt[currentLang];
+            const fullMessage = prompt + spokenText;
+            
+            // 3. Speak the text (using the dedicated function and its internal voice logic)
+            speakText(fullMessage);
+
+            // 4. Navigate when speech ends or after a fallback timeout
+            const utterance = synth.pending ? synth.pendingUtterance : null;
+            if (utterance) {
+                utterance.onend = function() {
+                    localStorage.setItem('appLang', currentLang);
+                    localStorage.setItem('appMode', currentMode);
+                    window.location.href = cardElement.href;
+                };
+            } else {
+                // Fallback if API is blocked or busy
+                localStorage.setItem('appLang', currentLang);
+                localStorage.setItem('appMode', currentMode);
+                setTimeout(() => {
+                    window.location.href = cardElement.href;
+                }, 500); // Increased fallback delay
+            }
+            return false; 
+        }
+        
+        /**
+         * Global handler for clicks on non-interactive text elements.
+         */
+        function handleTextClick(event) {
+            if (currentMode !== 'accessible') return;
+            
+            const target = event.target;
+            
+            // Only process if the target isn't already handled by another event (e.g., button, card)
+            if (target.tagName === 'BUTTON' || target.closest('a') || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+                return;
+            }
+
+            // Use the element itself or a close parent that contains the text
+            const textToSpeak = target.textContent.trim();
+            
+            if (textToSpeak.length > 0) {
+                // Prevent double-read if clicking on an element inside the already-read element
+                if (synth.speaking && synth.pendingUtterance && synth.pendingUtterance.text.includes(textToSpeak)) {
+                    return;
+                }
+                speakText(textToSpeak);
+            }
+        }
+        
+        /**
+         * Updates all UI text and styling based on current state.
+         */
+        function updateUI() {
+            // 1. Update Global Direction and Language
+            ELEMENTS.html.dir = currentLang === 'ur' ? 'rtl' : 'ltr';
+            ELEMENTS.html.lang = currentLang;
+
+            // 2. Update Global Mode Class
+            ELEMENTS.appContainer.className = `app-container mode-${currentMode}`;
+
+            // 3. Update Header Texts
+            ELEMENTS.appTitle.textContent = TEXTS.title[currentLang];
+            ELEMENTS.appSubtitle.textContent = TEXTS.subtitle[currentLang];
+            ELEMENTS.servicePrompt.textContent = TEXTS.servicePrompt[currentLang];
+            
+            // 4. Update Toggles
+            ELEMENTS.langUrBtn.textContent = TEXTS.langUr[currentLang];
+            ELEMENTS.langEnBtn.textContent = TEXTS.langEn[currentLang];
+            
+            ELEMENTS.langUrBtn.className = `toggle-btn toggle-lang ${currentLang === 'ur' ? 'active' : 'inactive'}`;
+            ELEMENTS.langEnBtn.className = `toggle-btn toggle-lang ${currentLang === 'en' ? 'active' : 'inactive'}`;
+
+            ELEMENTS.modeAccBtn.textContent = TEXTS.modeAccessible[currentLang];
+            ELEMENTS.modeStdBtn.textContent = TEXTS.modeStandard[currentLang];
+
+            ELEMENTS.modeAccBtn.className = `toggle-btn toggle-mode ${currentMode === 'accessible' ? 'active' : 'inactive'}`;
+            ELEMENTS.modeStdBtn.className = `toggle-btn toggle-mode ${currentMode === 'standard' ? 'active' : 'inactive'}`;
+            
+            // 5. Update Card Labels
+            document.querySelectorAll('.card-label').forEach(label => {
+                const urText = label.getAttribute('data-label-ur');
+                const enText = label.getAttribute('data-label-en');
+                label.textContent = currentLang === 'ur' ? urText : enText;
+            });
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUI();
+            
+            // ** NEW: Global Click Listener for text reading **
+            ELEMENTS.appContainer.addEventListener('click', handleTextClick);
+
+            // Initial Voice Announcement (delayed for stability)
+            if (currentMode === 'accessible') {
+                setTimeout(() => {
+                    speakText(TEXTS.title[currentLang] + ". " + TEXTS.servicePrompt[currentLang]);
+                }, 500);
+            }
+
+            // Language Toggle Listener (Modified to include voice feedback)
+            document.querySelectorAll('.toggle-lang').forEach(btn => {
+                btn.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const newLang = this.getAttribute('data-lang');
+                    if (currentLang !== newLang) {
+                         const spokenText = this.textContent;
+                         currentLang = newLang;
+                         localStorage.setItem('appLang', currentLang);
+                         updateUI();
+                         speakText(spokenText); // Speak the new selection/language
+                    }
+                });
+            });
+
+            // Mode Toggle Listener (Modified to include voice feedback)
+            document.querySelectorAll('.toggle-mode').forEach(btn => {
+                btn.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const newMode = this.getAttribute('data-mode');
+                    if (currentMode !== newMode) {
+                         const spokenText = this.textContent;
+                         currentMode = newMode;
+                         localStorage.setItem('appMode', currentMode);
+                         updateUI();
+                         // Speak the new mode name *after* the update to get the new voice
+                         if (currentMode === 'accessible') {
+                            speakText(spokenText + ". " + TEXTS.title[currentLang] + ". " + TEXTS.servicePrompt[currentLang]);
+                         } else {
+                            synth.cancel(); // Stop any pending speech if switching to standard
+                         }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

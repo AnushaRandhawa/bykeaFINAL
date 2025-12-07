@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title-main">Parcel Details</title>
+    <style>
+        /* --- Shared Variables & Global Reset --- */
+        :root {
+            --color-text: #212121;
+            --color-bg: #FAFAFA;
+            --color-delivery: #00796B; /* Teal Accent (Used for Delivery) */
+            --color-success: #388E3C;
+            --color-border: #757575;
+            --color-price: #D81B60; 
+            --color-highlight: #E0F2F1; /* Light Teal highlight */
+            
+            /* High Contrast Colors */
+            --hc-bg: #000000;
+            --hc-text: #FFFFFF;
+            --hc-card-bg: #222222;
+            --hc-border: #AAAAAA;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            padding: 1rem;
+            min-height: 100vh;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* RTL/LTR Handling */
+        [dir="rtl"] { text-align: right; }
+        [dir="ltr"] { text-align: left; }
+
+        /* Large Touch Targets Base */
+        button, input, textarea, .cat-card, .location-details-box, .review-section-box {
+            min-height: 48px;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+
+        /* ========================================= */
+        /* === ACCESSIBILITY SCALING (GLOBAL) - HIGH CONTRAST === */
+        /* ========================================= */
+        .mode-accessible { 
+            font-size: 1.25rem; 
+            background-color: var(--hc-bg) !important;
+            color: var(--hc-text) !important;
+        }
+        .mode-accessible body {
+            background-color: var(--hc-bg) !important;
+            color: var(--hc-text) !important;
+        }
+        .mode-accessible h1, .mode-accessible h2, .mode-accessible h3, .mode-accessible h4 { 
+            color: var(--hc-text) !important;
+        }
+
+        /* Scale Inputs/Labels/Paddings */
+        .mode-accessible label, .mode-accessible h4, .mode-accessible .label { font-size: 1.5rem; } 
+        .mode-accessible .cat-icon { font-size: 4rem; } 
+        .mode-accessible input, .mode-accessible textarea { 
+            font-size: 1.4rem; 
+            padding: 1.25rem; 
+            background-color: var(--hc-card-bg); 
+            color: var(--hc-text);
+            border: 3px solid var(--hc-border);
+        }
+        .mode-accessible .location-details-box, .mode-accessible .review-section-box, .mode-accessible .rider-details-box, .mode-accessible .cat-card {
+            background-color: var(--hc-card-bg);
+            border: 3px solid var(--hc-border);
+        }
+        .mode-accessible .review-item-line .detail, .mode-accessible .status-detail { color: var(--hc-border); } 
+        
+        /* Review/Tracking Elements */
+        .mode-accessible .action-button, .mode-accessible .step-button { 
+            font-size: 1.8rem; 
+            padding: 1.25rem; 
+            font-weight: 800;
+        }
+        .mode-accessible .review-location h4 { font-size: 1.7rem; } 
+        .mode-accessible .review-location p { font-size: 1.4rem; } 
+        .mode-accessible .review-item-line .label { font-size: 1.4rem; } 
+        .mode-accessible .rider-row span { color: var(--hc-text); } 
+
+        .mode-accessible .tracking-status {
+            background-color: #0A3330; 
+            border-left: 5px solid var(--color-success);
+        }
+        .mode-accessible .map-placeholder {
+            background-color: #333333;
+            color: var(--hc-text);
+        }
+        .mode-accessible .rider-action-buttons button {
+            background: var(--hc-card-bg);
+            border: 3px solid var(--hc-border);
+            color: var(--hc-text);
+        }
+        /* ========================================= */
+
+        /* --- Header & Navigation (Consistent) --- */
+        .app-header {
+            padding: 1rem 0;
+            text-align: center;
+            position: relative;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 1rem;
+        }
+        .mode-accessible .app-header {
+            border-bottom: 3px solid var(--hc-border);
+        }
+        .app-title { font-weight: 800; margin: 0; }
+        .step-progress { margin: -0.5rem 0 1rem; color: #666; font-size: 0.9rem; }
+        .mode-accessible .step-progress { color: var(--hc-border); }
+
+
+        .back-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--color-delivery);
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            z-index: 10;
+        }
+        [dir='ltr'] .back-button { left: 0; flex-direction: row; }
+        [dir='rtl'] .back-button { right: 0; flex-direction: row-reverse; }
+        .back-icon { font-size: 1.5rem; margin: 0 0.25rem; }
+
+        /* --- Wizard Step Views --- */
+        .step-view { display: none; animation: fadeIn 0.3s ease; }
+        .step-view.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- STEP 1: Category Selection --- */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .cat-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-radius: 8px;
+            padding: 1.5rem 1rem;
+            background: white;
+            border: 2px solid #E0E0E0;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .cat-card.selected { 
+            border-color: var(--color-delivery); 
+            box-shadow: 0 0 0 4px var(--color-highlight); 
+        }
+        .cat-icon { font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--color-delivery); }
+        .cat-label { font-size: 1rem; font-weight: 600; }
+        
+        .action-button, .step-button {
+            width: 100%; color: white; border: none; border-radius: 8px;
+            font-weight: 700; background-color: var(--color-delivery);
+            margin-top: 1.5rem;
+            font-size: 1.1rem; padding: 0.75rem;
+        }
+        
+        /* --- STEP 2/3: Location Input (Refined Style) --- */
+        .map-placeholder {
+            width: 100%;
+            height: 200px;
+            background-color: #E0E0E0;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #757575;
+            font-weight: bold;
+        }
+
+        .location-search-bar {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        .location-search-bar input {
+            width: 100%;
+            border-radius: 9999px;
+            border: 2px solid var(--color-border);
+            padding: 0.75rem 1rem;
+            padding-right: 48px; 
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .location-search-bar input:focus {
+            border-color: var(--color-delivery);
+        }
+
+        .location-search-bar button {
+            position: absolute;
+            right: 0;
+            top: 0;
+            background: none;
+            border: none;
+            color: var(--color-delivery);
+            font-size: 1.5rem;
+            width: 48px;
+            height: 48px;
+        }
+        [dir='ltr'] .location-search-bar button {
+            right: 0;
+            left: auto;
+        }
+        [dir='rtl'] .location-search-bar button {
+            left: 0; 
+            right: auto;
+        }
+        [dir='rtl'] .location-search-bar input {
+            padding-left: 48px; 
+            padding-right: 1rem;
+        }
+        [dir='ltr'] .location-search-bar input {
+            padding-right: 48px; 
+            padding-left: 1rem;
+        }
+
+
+        .input-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+        .location-details-box {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .location-details-box h4 { margin: 0 0 0.5rem; font-size: 1.2rem; }
+        .location-details-box p { margin: 0; color: #666; font-size: 1rem; }
+        
+        .recipient-details input { 
+            width: 100%; border: 2px solid var(--color-border); 
+            border-radius: 4px; padding: 0.75rem; 
+            margin-bottom: 0.5rem;
+        }
+        .recipient-details h3 { margin-bottom: 0.5rem; }
+
+        /* --- STEP 4: Review Your Order (Boxed Sections) --- */
+        .review-section-box {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .review-section-box h4 {
+            color: var(--color-delivery);
+            border-bottom: 1px solid var(--color-highlight);
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+        .review-item-line {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .review-icon-pin { 
+            background: var(--color-delivery);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 0.8rem;
+        }
+        .review-item-line .label { font-weight: 600; margin: 0; }
+        .review-item-line .detail { color: #666; margin: 0; }
+        .mode-accessible .review-item-line .detail { color: var(--hc-border); }
+
+        /* --- STEP 5: Order Tracking --- */
+        .tracking-status {
+            text-align: center;
+            background-color: var(--color-highlight);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 5px solid var(--color-success);
+        }
+        .status-text {
+            color: var(--color-success);
+            font-weight: 800;
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .tracking-map {
+            width: 100%;
+            height: 250px;
+            background-color: #E0E0E0;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #757575;
+            font-weight: bold;
+        }
+        .rider-details-box {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .rider-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .rider-action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .rider-action-buttons button {
+            flex: 1;
+            background: white;
+            color: var(--color-text);
+            border: 2px solid var(--color-border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .rider-action-buttons button:hover { border-color: var(--color-delivery); }
+        .cancel-button {
+            background-color: var(--color-price);
+            color: white;
+            border: none;
+            margin-top: 1.5rem;
+        }
+        .mode-accessible .rider-action-buttons button {
+             background: var(--hc-card-bg);
+             border: 3px solid var(--hc-border);
+             color: var(--hc-text);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container" id="app-container">
+
+        <header class="app-header">
+            <button class="back-button" id="global-back-btn">
+                <span class="back-icon">←</span>
+                <span id="back-label">Back</span>
+            </button>
+            <h1 class="app-title" id="page-title">Parcel Details</h1>
+            <p class="step-progress" id="step-progress">Step 1 of 5</p>
+        </header>
+
+        <main id="main-content">
+            
+            <div id="step-1" class="step-view active">
+                <h4 id="lbl-what-sending" style="margin-top:0;">What are you sending?</h4>
+                <div class="category-grid" id="cat-grid">
+                        </div>
+                <button class="step-button" id="btn-next-1" onclick="handleStep1Next(event)">Continue</button>
+            </div>
+
+            <div id="step-2" class="step-view">
+                <h4 id="lbl-pickup-title" style="margin-top:0;">Pickup Location</h4>
+                <div class="map-placeholder" id="txt-map-pickup" onclick="speakText(this.textContent)">Map View</div>
+                
+                <div class="location-search-bar">
+                    <input type="text" id="inp-pickup-search" placeholder="Search for address">
+                    <button onclick="speakInputContent(document.getElementById('inp-pickup-search'))">🔎</button>
+                </div>
+
+                <div class="location-details-box" onclick="speakAddressDetails('pickup')">
+                    <h4 id="lbl-pickup-address-header">Address Header</h4>
+                    <p id="lbl-pickup-address-detail">Address Detail</p>
+                </div>
+                
+                <h3 class="recipient-details" id="lbl-recipient-pickup-details">Recipient Details</h3>
+                <div class="recipient-details">
+                    <input type="text" id="inp-pickup-name" placeholder="Name">
+                    <input type="text" id="inp-pickup-contact" placeholder="Contact Number">
+                </div>
+
+                <button class="step-button" id="btn-confirm-pickup" onclick="savePickupInfoAndGoToStep3(event)">Confirm Pickup</button>
+            </div>
+
+            <div id="step-3" class="step-view">
+                <h4 id="lbl-dropoff-title" style="margin-top:0;">Drop-off Location</h4>
+                <div class="map-placeholder" id="txt-map-dropoff" onclick="speakText(this.textContent)">Map View</div>
+                
+                <div class="location-search-bar">
+                    <input type="text" id="inp-dropoff-search" placeholder="Search drop-off location">
+                    <button onclick="speakInputContent(document.getElementById('inp-dropoff-search'))">🔎</button>
+                </div>
+                
+                <div class="location-details-box" onclick="speakAddressDetails('dropoff')">
+                    <h4 id="lbl-dropoff-address-header">Address Header</h4>
+                    <p id="lbl-dropoff-address-detail">Address Detail</p>
+                </div>
+                
+                <h3 class="recipient-details" id="lbl-recipient-dropoff-details">Recipient Details</h3>
+                <div class="recipient-details">
+                    <input type="text" id="inp-dropoff-name" placeholder="Name">
+                    <input type="text" id="inp-dropoff-contact" placeholder="Contact Number">
+                </div>
+
+                <button class="step-button" id="btn-confirm-dropoff" onclick="saveDropoffInfoAndGoToStep4(event)">Confirm Drop-off</button>
+            </div>
+
+            <div id="step-4" class="step-view">
+                <h3 id="lbl-review-title">Review Your Order</h3>
+
+                <div class="review-section-box" onclick="speakReviewDetails('pickup')">
+                    <h4 id="review-pickup-header">Pickup Location (Pickup)</h4>
+                    <div class="review-item-line">
+                        <span class="review-icon-pin" style="background: var(--color-delivery);">A</span>
+                        <div>
+                            <p class="label" id="review-pickup-address"></p>
+                            <p class="detail" id="review-pickup-contact"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="review-section-box" onclick="speakReviewDetails('dropoff')">
+                    <h4 id="review-dropoff-header">Drop-off Location (Drop-off)</h4>
+                    <div class="review-item-line">
+                        <span class="review-icon-pin">B</span>
+                        <div>
+                            <p class="label" id="review-dropoff-address"></p>
+                            <p class="detail" id="review-dropoff-contact"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="review-section-box" onclick="speakReviewDetails('parcel')">
+                    <h4 id="review-parcel-header">Parcel Details</h4>
+                    <div class="review-item-line">
+                        <span class="review-icon-pin" style="background: #666; font-size: 1.1rem; border-radius: 4px;">📦</span>
+                        <div>
+                            <p class="label" id="review-category"></p>
+                            <p class="detail" id="review-size-label"></p>
+                        </div>
+                    </div>
+                    <div class="review-item-line" style="justify-content: space-between; border-top: 1px dashed #eee; margin-top: 1rem; padding-top: 0.5rem;">
+                        <p class="label" id="review-estimated-fare">Estimated Fare</p>
+                        <p class="label" id="review-fare-value" style="color: var(--color-price);">Rs. 350</p>
+                    </div>
+                </div>
+
+                <button class="step-button" id="btn-confirm-order" onclick="showConfirmation(event)">Confirm Order</button>
+            </div>
+            
+            <div id="step-5" class="step-view">
+                <div class="tracking-status" onclick="speakTrackingStatus()">
+                    <p id="tracking-status-msg" class="status-text">Your rider is on the way!</p>
+                    <p class="status-detail" id="rider-eta-text">15 min arrival.</p>
+                </div>
+
+                <div class="tracking-map" id="tracking-map-view" onclick="speakText(this.textContent)">
+                    Map View
+                </div>
+
+                <div class="rider-details-box" onclick="speakRiderDetails()">
+                    <div class="rider-row">
+                        <span id="rider-label" style="font-weight: 700;">Rider Details</span>
+                        <span style="font-weight: 700;">4.8 ★</span>
+                    </div>
+                    <div class="rider-row">
+                        <span id="lbl-rider-name">Name:</span>
+                        <span id="rider-name">Ahmed Khan</span>
+                    </div>
+                    <div class="rider-row">
+                        <span id="lbl-rider-vehicle">Vehicle:</span>
+                        <span id="rider-vehicle">Bike (KHI-B 567)</span>
+                    </div>
+                    <div class="rider-row" style="margin-top: 1rem;">
+                        <span style="font-weight: 700;" id="eta-label">Estimated Arrival:</span>
+                        <span style="font-weight: 700; color: var(--color-success);" id="rider-eta">15 minutes</span>
+                    </div>
+                </div>
+
+                <div class="rider-action-buttons">
+                    <button id="btn-call-rider" onclick="speakAction('Calling Rider.')">📞 Call Rider</button>
+                    <button id="btn-message-rider" onclick="speakAction('Sending Message to Rider.')">✉️ Message Rider</button>
+                </div>
+                
+                <button class="step-button cancel-button" id="btn-cancel-order" onclick="speakAction(this.textContent)">Cancel Order</button>
+            </div>
+
+        </main>
+        
+        <div class="modal-overlay" id="modal" style="display: none;">
+            <div class="modal-content">
+                <h3 id="modal-title" style="margin:0;">Notice</h3>
+                <p id="modal-msg">Error message.</p>
+                <button class="action-button" onclick="document.getElementById('modal').style.display='none'; speakAction('Dismissed.')" id="modal-ok">OK</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- CONFIGURATION & LOCALIZATION DATA ---
+        const TEXTS = {
+            back: { ur: "پیچھے جائیں", en: "Back" },
+            
+            // Step Titles
+            title1: { ur: "پارسل کی تفصیلات", en: "Parcel Details" },
+            title2: { ur: "اٹھانے کا مقام", en: "Pickup Location" },
+            title3: { ur: "منزل کا مقام", en: "Drop-off Location" },
+            title4: { ur: "آرڈر ریویو", en: "Order Review" },
+            title5: { ur: "آرڈر ٹریکنگ", en: "Order Tracking" },
+            
+            // Labels & Buttons
+            lblWhatSending: { ur: "آپ کیا بھیج رہے ہیں؟", en: "What are you sending?" },
+            btnContinue: { ur: "جاری رکھیں", en: "Continue" },
+            lblMap: { ur: "نقشہ یہاں ہے", en: "Map View" },
+            phSearch: { ur: "ایڈریس تلاش کریں", en: "Search for address" },
+            lblRecipient: { ur: "وصول کنندہ کی تفصیلات", en: "Recipient Details" },
+            phName: { ur: "نام", en: "Name" },
+            phContact: { ur: "رابطہ نمبر", en: "Contact Number" },
+            btnConfirmPickup: { ur: "اٹھانا کنفرم کریں", en: "Confirm Pickup" },
+            btnConfirmDropoff: { ur: "منزل کنفرم کریں", en: "Confirm Drop-off" },
+            lblReviewTitle: { ur: "اپنا آرڈر ریویو کریں", en: "Review Your Order" },
+            lblPickupReviewHeader: { ur: "اٹھانے کا مقام (Pickup)", en: "Pickup Location (Pickup)" },
+            lblDropoffReviewHeader: { ur: "منزل (Drop-off)", en: "Drop-off Location (Drop-off)" },
+            lblParcelReviewHeader: { ur: "پارسل کی تفصیلات", en: "Parcel Details" },
+            lblReviewEstimatedFare: { ur: "تخمینہ کرایہ", en: "Estimated Fare" },
+            lblSmallParcel: { ur: "چھوٹا پارسل", en: "Small Parcel" },
+            btnConfirmOrder: { ur: "آرڈر کنفرم کریں", en: "Confirm Order" },
+            
+            // Tracking Details
+            lblTrackingStatus: { ur: "آپ کا رائڈر راستے میں ہے!", en: "Your rider is on the way!" },
+            lblTrackingStatusDetail: { ur: "15 منٹ میں آمد", en: "15 min arrival." },
+            lblRiderDetails: { ur: "رائڈر کی تفصیلات", en: "Rider Details" },
+            lblRiderName: { ur: "نام:", en: "Name:" },
+            lblRiderVehicle: { ur: "گاڑی:", in: "Vehicle:" },
+            lblETA: { ur: "تخمینہ شدہ آمد کا وقت:", en: "Estimated Arrival:" },
+            btnCall: { ur: "رائڈر کو کال کریں", en: "Call Rider" },
+            btnMessage: { ur: "پیغام بھیجیں", en: "Message Rider" },
+            btnCancel: { ur: "آرڈر کینسل کریں", en: "Cancel Order" },
+
+            // Category Data
+            cats: [
+                { id: 'document', ur: 'دستاویز', en: 'Document', icon: '📄' },
+                { id: 'food', ur: 'کھانا', en: 'Food', icon: '🍴' },
+                { id: 'clothing', ur: 'کپڑے', en: 'Clothing', icon: '👕' },
+                { id: 'electronics', ur: 'الیکٹرانکس', en: 'Electronics', icon: '💻' },
+                { id: 'other', ur: 'دیگر', en: 'Other', icon: '📦' }
+            ],
+            
+            // Voice Prompts & Errors
+            voicePrompt: { ur: "منتخب کردہ ", en: "Selected " },
+            voiceErrorRequired: { ur: "خرابی: براہ کرم تمام وصول کنندہ کی تفصیلات مکمل کریں۔", en: "Error: Please complete all recipient details." },
+            voiceBack: { ur: "پیچھے جائیں", en: "Back" },
+            voiceToHome: { ur: "ہوم پیج پر واپس جا رہا ہے۔", en: "Returning to home page." },
+            modalTitleRequired: { ur: 'معلومات درکار ہیں', en: 'Information Required' },
+            modalMsgRequired: { ur: 'براہ کرم وصول کنندہ کی تفصیلات (نام اور رابطہ نمبر) مکمل کریں۔', en: 'Please complete recipient details (Name and Contact Number).' }
+        };
+
+        // --- STATE MANAGEMENT ---
+        let currentStep = 1;
+        let selectedCategory = localStorage.getItem('deliveryCat') || 'document';
+        let currentLang = localStorage.getItem('appLang') || 'ur';
+        let currentMode = localStorage.getItem('appMode') || 'accessible';
+        
+        // Mock Data for Persistence
+        let pickupInfo = {
+            address: 'House 123, Street 4, Sector G-8, Islamabad',
+            name: 'Ali Khan', contact: '+92 345 1112233'
+        };
+        let dropoffInfo = {
+            address: 'Office #5, Plaza 7, Blue Area, Islamabad',
+            name: 'Sara Ejaz', contact: '+92 300 9876543'
+        };
+        let estimatedFare = 350; // Mock calculation result
+
+        // --- DOM ELEMENTS CACHE ---
+        const els = {
+            container: document.getElementById('app-container'),
+            pageTitleMain: document.getElementById('page-title-main'),
+            pageTitle: document.getElementById('page-title'),
+            stepProgress: document.getElementById('step-progress'),
+            backLabel: document.getElementById('back-label'),
+            globalBackBtn: document.getElementById('global-back-btn'),
+            catGrid: document.getElementById('cat-grid'),
+            modal: document.getElementById('modal'),
+            // Step 2 elements
+            inpPickupSearch: document.getElementById('inp-pickup-search'),
+            inpPickupName: document.getElementById('inp-pickup-name'),
+            inpPickupContact: document.getElementById('inp-pickup-contact'),
+            // Step 3 elements
+            inpDropoffSearch: document.getElementById('inp-dropoff-search'),
+            inpDropoffName: document.getElementById('inp-dropoff-name'),
+            inpDropoffContact: document.getElementById('inp-dropoff-contact'),
+            // Tracking labels
+            lblRiderName: document.getElementById('lbl-rider-name'),
+            lblRiderVehicle: document.getElementById('lbl-rider-vehicle'),
+        };
+
+        // --- TTS UTILITIES ---
+        const synth = window.speechSynthesis;
+        let voices = [];
+        if (synth) {
+            synth.onvoiceschanged = () => { voices = synth.getVoices(); };
+            synth.onvoiceschanged(); 
+        }
+
+        /**
+         * Converts text to speech. Accepts an optional callback to run on speech end.
+         */
+        function speakText(text, callback = null) {
+            if (!synth || currentMode !== 'accessible') {
+                if (callback) setTimeout(callback, 50);
+                return;
+            }
+            synth.cancel();
+
+            if (voices.length === 0) voices = synth.getVoices();
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            let langCode = currentLang === 'ur' ? 'ur-PK' : 'en-US';
+            const voice = voices.find(v => v.lang.startsWith(langCode.substring(0, 2))); 
+            if (voice) utterance.voice = voice;
+            else utterance.lang = langCode;
+
+            utterance.rate = 1.0; 
+            
+            if (callback) {
+                // Ensure navigation is called only upon successful speech end
+                utterance.onend = callback;
+                utterance.onerror = callback; // Handle errors by still proceeding
+            }
+
+            synth.speak(utterance);
+        }
+        
+        function speakInputContent(inputElement) {
+            if (currentMode !== 'accessible') return;
+            
+            let labelText = inputElement.placeholder;
+            let content = inputElement.value;
+            
+            speakText(`${labelText}. Current content: ${content}.`);
+        }
+        
+        function speakAction(message) {
+            // This is for simple action announcements that don't block navigation
+             if (currentMode === 'accessible') speakText(message);
+        }
+
+        /**
+         * Global handler for clicks on non-interactive text elements.
+         */
+        function handleTextClick(event) {
+             if (currentMode !== 'accessible') return;
+             
+             const target = event.target;
+             
+             // Check if the target is an interactive element or part of one.
+             if (target.tagName === 'BUTTON' || target.closest('button') || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.closest('.cat-card') || target.closest('.location-details-box') || target.closest('.review-section-box') || target.closest('.rider-details-box')) {
+                 return;
+             }
+
+             // Use the element itself or a close parent that contains the text
+             const textToSpeak = target.textContent.trim();
+             
+             if (textToSpeak.length > 0) {
+                 speakText(textToSpeak);
+             }
+        }
+
+
+        // --- RENDERERS ---
+
+        function renderCategories() {
+            els.catGrid.innerHTML = TEXTS.cats.map(cat => `
+                <div class="cat-card ${cat.id === selectedCategory ? 'selected' : ''}" 
+                    data-category="${cat.id}"
+                    onclick="selectCategory('${cat.id}', event)">
+                    <div class="cat-icon">${cat.icon}</div>
+                    <span class="cat-label">${cat[currentLang]}</span>
+                </div>
+            `).join('');
+        }
+        
+        function updateStep23Fields(step) {
+            const isPickup = step === 2;
+            const info = isPickup ? pickupInfo : dropoffInfo;
+            const headerId = isPickup ? 'lbl-pickup-address-header' : 'lbl-dropoff-address-header';
+            const detailId = isPickup ? 'lbl-pickup-address-detail' : 'lbl-dropoff-address-detail';
+            const nameId = isPickup ? 'inp-pickup-name' : 'inp-dropoff-name';
+            const contactId = isPickup ? 'inp-pickup-contact' : 'inp-dropoff-contact';
+            const searchId = isPickup ? 'inp-pickup-search' : 'inp-dropoff-search';
+            
+            // Update address display (using mock data structure)
+            document.getElementById(headerId).textContent = info.address.split(',')[0].trim();
+            document.getElementById(detailId).textContent = info.address.split(',').slice(1).join(',').trim();
+            
+            // Update inputs and placeholders
+            document.getElementById(nameId).placeholder = TEXTS.phName[currentLang];
+            document.getElementById(contactId).placeholder = TEXTS.phContact[currentLang];
+            document.getElementById(searchId).placeholder = TEXTS.phSearch[currentLang];
+            
+            // Load mock saved values
+            document.getElementById(nameId).value = info.name;
+            document.getElementById(contactId).value = info.contact;
+
+            // Re-bind click handlers for speech
+            document.getElementById(searchId).onclick = () => speakInputContent(document.getElementById(searchId));
+            document.getElementById(nameId).onclick = () => speakInputContent(document.getElementById(nameId));
+            document.getElementById(contactId).onclick = () => speakInputContent(document.getElementById(contactId));
+        }
+
+        function updateStep4Review() {
+            const lang = currentLang;
+            const selectedCatObj = TEXTS.cats.find(c => c.id === selectedCategory);
+
+            document.getElementById('review-pickup-address').textContent = pickupInfo.address;
+            document.getElementById('review-pickup-contact').textContent = `${pickupInfo.name} | ${pickupInfo.contact}`;
+            document.getElementById('review-dropoff-address').textContent = dropoffInfo.address;
+            document.getElementById('review-dropoff-contact').textContent = `${dropoffInfo.name} | ${dropoffInfo.contact}`;
+            
+            document.getElementById('review-category').textContent = selectedCatObj ? selectedCatObj[lang] : '';
+            document.getElementById('review-size-label').textContent = TEXTS.lblSmallParcel[lang];
+            
+            // Update text labels
+            document.getElementById('review-estimated-fare').textContent = TEXTS.lblReviewEstimatedFare[lang];
+            document.getElementById('review-fare-value').textContent = `Rs. ${estimatedFare}`;
+        }
+        
+        function updateStep5Tracking() {
+            const lang = currentLang;
+            
+            // Update mock details
+            document.getElementById('rider-name').textContent = 'Ahmed Khan';
+            document.getElementById('rider-vehicle').textContent = `Bike (KHI-B 567)`;
+            document.getElementById('rider-eta').textContent = lang === 'ur' ? '15 منٹ' : '15 minutes';
+        }
+
+        // --- TTS REVIEW FUNCTIONS ---
+
+        function speakAddressDetails(type) {
+             if (currentMode !== 'accessible') return;
+             const info = type === 'pickup' ? pickupInfo : dropoffInfo;
+             const titleKey = type === 'pickup' ? 'title2' : 'title3'; 
+             const message = `${TEXTS[titleKey][currentLang]}: ${info.address}. ${TEXTS.lblRecipient[currentLang]}: ${info.name}, ${info.contact}.`;
+             speakText(message);
+        }
+        
+        function speakReviewDetails(section) {
+            if (currentMode !== 'accessible') return;
+            let message = '';
+            if (section === 'pickup') {
+                message = `${TEXTS.lblPickupReviewHeader[currentLang]}. ${pickupInfo.address}. Contact: ${pickupInfo.name}, ${pickupInfo.contact}`;
+            } else if (section === 'dropoff') {
+                message = `${TEXTS.lblDropoffReviewHeader[currentLang]}. ${dropoffInfo.address}. Contact: ${dropoffInfo.name}, ${dropoffInfo.contact}`;
+            } else if (section === 'parcel') {
+                const cat = document.getElementById('review-category').textContent;
+                const fare = document.getElementById('review-fare-value').textContent;
+                message = `${TEXTS.lblParcelReviewHeader[currentLang]}. ${cat}, ${fare} estimated fare.`;
+            }
+            speakText(message);
+        }
+        
+        function speakTrackingStatus() {
+            if (currentMode !== 'accessible') return;
+            const status = document.getElementById('tracking-status-msg').textContent;
+            const eta = document.getElementById('rider-eta-text').textContent;
+            speakText(`${status}. ${eta}.`);
+        }
+        
+        function speakRiderDetails() {
+            if (currentMode !== 'accessible') return;
+            const rider = document.getElementById('rider-name').textContent;
+            const vehicle = document.getElementById('rider-vehicle').textContent;
+            const eta = document.getElementById('rider-eta').textContent;
+            
+            let message = `${TEXTS.lblRiderDetails[currentLang]}: ${rider}. ${TEXTS.lblRiderVehicle[currentLang]} ${vehicle}. ${TEXTS.lblETA[currentLang]} ${eta}`;
+            speakText(message);
+        }
+
+        // --- NAVIGATION & FLOW LOGIC ---
+
+        // Simplified performNavigation to remove the conflicting setTimeout/delay logic.
+        // It relies entirely on the caller (speakText) to handle timing in accessible mode.
+        function performNavigation(target, isMPA = false) {
+            if (isMPA) {
+                window.location.href = target;
+            } else {
+                currentStep = target;
+                switchView();
+            }
+        }
+
+        function handleStep1Next(event) {
+            const navigateToStep2 = () => performNavigation(2);
+
+            if (currentMode === 'accessible') {
+                 event.preventDefault();
+                 speakText(TEXTS.btnContinue[currentLang] + ". Now setting Pickup location.", navigateToStep2);
+            } else {
+                 navigateToStep2();
+            }
+        }
+
+        function savePickupInfoAndGoToStep3(event) {
+            const name = els.inpPickupName.value.trim();
+            const contact = els.inpPickupContact.value.trim();
+            
+            const navigateToStep3 = () => {
+                pickupInfo.name = name;
+                pickupInfo.contact = contact;
+                performNavigation(3);
+            };
+
+            if (!name || !contact) {
+                 if (currentMode === 'accessible') {
+                     event.preventDefault();
+                     speakText(TEXTS.voiceErrorRequired[currentLang]);
+                 } else {
+                     showModal(TEXTS.modalTitleRequired[currentLang], TEXTS.modalMsgRequired[currentLang]);
+                 }
+                 return;
+            }
+            
+            if (currentMode === 'accessible') {
+                 event.preventDefault();
+                 speakText(`${TEXTS.btnConfirmPickup[currentLang]} successful. Now setting Drop-off location.`, navigateToStep3);
+            } else {
+                 navigateToStep3();
+            }
+        }
+
+        function saveDropoffInfoAndGoToStep4(event) {
+            const name = els.inpDropoffName.value.trim();
+            const contact = els.inpDropoffContact.value.trim();
+            
+            const navigateToStep4 = () => {
+                dropoffInfo.name = name;
+                dropoffInfo.contact = contact;
+                performNavigation(4);
+            };
+
+            if (!name || !contact) {
+                 if (currentMode === 'accessible') {
+                     event.preventDefault();
+                     speakText(TEXTS.voiceErrorRequired[currentLang]);
+                 } else {
+                     showModal(TEXTS.modalTitleRequired[currentLang], TEXTS.modalMsgRequired[currentLang]);
+                 }
+                 return;
+            }
+            
+            if (currentMode === 'accessible') {
+                 event.preventDefault();
+                 speakText(`${TEXTS.btnConfirmDropoff[currentLang]} successful. Proceeding to order review.`, navigateToStep4);
+            } else {
+                 navigateToStep4();
+            }
+        }
+
+        function showConfirmation(event) {
+            const navigateToStep5 = () => {
+                 // Store status to force tracking view on reload/re-entry
+                 localStorage.setItem('deliveryStatus', 'confirmed'); 
+                 performNavigation(5); 
+            };
+
+            if (currentMode === 'accessible') {
+                 event.preventDefault();
+                 speakText(TEXTS.btnConfirmOrder[currentLang] + ". Redirecting to order tracking.", navigateToStep5);
+            } else {
+                 navigateToStep5();
+            }
+        }
+
+        function selectCategory(id, event) {
+            const catLabel = event.currentTarget.querySelector('.cat-label').textContent;
+            
+            if (currentMode === 'accessible') {
+                 event.preventDefault();
+                 speakText(`${TEXTS.voicePrompt[currentLang]}${catLabel}. Press continue.`);
+            }
+            selectedCategory = id;
+            localStorage.setItem('deliveryCat', id);
+            renderCategories();
+        }
+        
+        function handleBack(event) {
+            const navigateBack = () => {
+                if (currentStep === 1 || currentStep === 5) {
+                    performNavigation('index.html', true);
+                } else {
+                    currentStep--;
+                    switchView();
+                    // Announce new view title AFTER switch is complete
+                    if (currentMode === 'accessible') {
+                        const titleKey = `title${currentStep}`;
+                        speakText("Now on " + TEXTS[titleKey][currentLang]);
+                    }
+                }
+            };
+            
+            if (currentMode === 'accessible') {
+                event.preventDefault();
+                const exitMessage = (currentStep === 1 || currentStep === 5) ? TEXTS.voiceBack[currentLang] + " " + TEXTS.voiceToHome[currentLang] : TEXTS.voiceBack[currentLang] + ". Going back to previous screen.";
+                speakText(exitMessage, navigateBack);
+            } else {
+                navigateBack();
+            }
+        }
+
+        function switchView() {
+            // Hide all steps
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById(`step-${i}`);
+                if (el) el.classList.remove('active');
+            }
+
+            // Show current step
+            const currentStepEl = document.getElementById(`step-${currentStep}`);
+            if (currentStepEl) currentStepEl.classList.add('active');
+
+            // Run specific updates for the new step
+            if (currentStep === 1) renderCategories();
+            if (currentStep === 2) updateStep23Fields(2);
+            if (currentStep === 3) updateStep23Fields(3);
+            if (currentStep === 4) updateStep4Review();
+            if (currentStep === 5) updateStep5Tracking();
+
+            updateTexts();
+        }
+        
+        function showModal(title, message) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-msg').textContent = message;
+            document.getElementById('modal').style.display = 'flex';
+            if (currentMode === 'accessible') speakText(`${title}. ${message}`);
+        }
+        
+        // --- TEXT/UI UPDATES ---
+        
+        function updateTexts() {
+            const lang = currentLang;
+
+            const titleKey = `title${currentStep}`;
+            
+            // Update HTML/Global attributes based on current language/mode
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === 'ur' ? 'rtl' : 'ltr';
+            els.container.className = `app-container mode-${currentMode}`;
+
+            // Update Header & Progress
+            els.pageTitle.textContent = TEXTS[titleKey][lang];
+            els.pageTitleMain.textContent = `${TEXTS[titleKey][lang]} | ${TEXTS[titleKey]['en']}`;
+            els.stepProgress.textContent = `Step ${currentStep} of 5`;
+            els.backLabel.textContent = TEXTS.back[lang];
+
+
+            // --- Step 1 ---
+            if (document.getElementById('step-1').classList.contains('active')) {
+                document.getElementById('lbl-what-sending').textContent = TEXTS.lblWhatSending[lang];
+                document.getElementById('btn-next-1').textContent = TEXTS.btnContinue[lang];
+                renderCategories();
+            }
+
+            // --- Step 2 ---
+            if (document.getElementById('step-2').classList.contains('active')) {
+                document.getElementById('lbl-pickup-title').textContent = TEXTS.title2[lang];
+                document.getElementById('txt-map-pickup').textContent = TEXTS.lblMap[lang];
+                document.getElementById('lbl-recipient-pickup-details').textContent = TEXTS.lblRecipient[lang];
+                document.getElementById('btn-confirm-pickup').textContent = TEXTS.btnConfirmPickup[lang];
+            }
+            
+            // --- Step 3 ---
+            if (document.getElementById('step-3').classList.contains('active')) {
+                document.getElementById('lbl-dropoff-title').textContent = TEXTS.title3[lang];
+                document.getElementById('txt-map-dropoff').textContent = TEXTS.lblMap[lang];
+                document.getElementById('lbl-recipient-dropoff-details').textContent = TEXTS.lblRecipient[lang];
+                document.getElementById('btn-confirm-dropoff').textContent = TEXTS.btnConfirmDropoff[lang];
+            }
+
+            // --- Step 4 ---
+            if (document.getElementById('step-4').classList.contains('active')) {
+                document.getElementById('lbl-review-title').textContent = TEXTS.lblReviewTitle[lang];
+                document.getElementById('review-pickup-header').textContent = TEXTS.lblPickupReviewHeader[lang];
+                document.getElementById('review-dropoff-header').textContent = TEXTS.lblDropoffReviewHeader[lang];
+                document.getElementById('review-parcel-header').textContent = TEXTS.lblParcelReviewHeader[lang];
+                document.getElementById('btn-confirm-order').textContent = TEXTS.btnConfirmOrder[lang];
+                updateStep4Review();
+            }
+
+            // --- Step 5 (Tracking) ---
+            if (document.getElementById('step-5').classList.contains('active')) {
+                document.getElementById('tracking-status-msg').textContent = TEXTS.lblTrackingStatus[lang];
+                document.getElementById('rider-eta-text').textContent = TEXTS.lblTrackingStatusDetail[lang];
+                document.getElementById('rider-label').textContent = TEXTS.lblRiderDetails[lang];
+                document.getElementById('eta-label').textContent = TEXTS.lblETA[lang];
+                document.getElementById('tracking-map-view').textContent = TEXTS.lblMap[lang];
+
+                document.getElementById('lbl-rider-name').textContent = TEXTS.lblRiderName[lang];
+                document.getElementById('lbl-rider-vehicle').textContent = TEXTS.lblRiderVehicle[lang];
+
+                document.getElementById('btn-call-rider').textContent = `📞 ${TEXTS.btnCall[lang]}`;
+                document.getElementById('btn-message-rider').textContent = `✉️ ${TEXTS.btnMessage[lang]}`;
+                document.getElementById('btn-cancel-order').textContent = TEXTS.btnCancel[lang];
+                updateStep5Tracking();
+            }
+            
+            // --- Modal ---
+            document.getElementById('modal-title').textContent = TEXTS.modalTitleRequired[lang];
+            document.getElementById('modal-msg').textContent = lang === 'ur' ? 'براہ کرم تمام معلومات مکمل کریں۔' : 'Please complete all required information.';
+            document.getElementById('modal-ok').textContent = lang === 'ur' ? 'ٹھیک ہے' : 'OK';
+
+            // Re-bind back button click to handleBack
+            els.globalBackBtn.onclick = handleBack;
+
+            // Re-run field updates to apply placeholders/values with new language
+            if (document.getElementById('step-2').classList.contains('active')) updateStep23Fields(2);
+            if (document.getElementById('step-3').classList.contains('active')) updateStep23Fields(3);
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load state from localStorage
+            currentLang = localStorage.getItem('appLang') || 'ur';
+            currentMode = localStorage.getItem('appMode') || 'accessible';
+            selectedCategory = localStorage.getItem('deliveryCat') || 'document';
+            
+            // Check for tracking status flag
+            const deliveryStatus = localStorage.getItem('deliveryStatus');
+            if (deliveryStatus === 'confirmed') {
+                currentStep = 5;
+                localStorage.removeItem('deliveryStatus');
+            }
+            
+            // ** NEW: Global Click Listener for text reading **
+            els.container.addEventListener('click', handleTextClick);
+            
+            // Call switchView on load to handle initial rendering and language update
+            switchView();
+        });
+    </script>
+</body>
+</html>
