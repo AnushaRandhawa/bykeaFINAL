@@ -207,7 +207,7 @@
 <body>
     <div class="app-container" id="app-container">
         <header class="app-header">
-            <img src="logoUrdu.jpeg" alt="Bykea" class="app-logo" id="app-logo">
+            <img src="/logoUrdu.jpeg" alt="Bykea" class="app-logo" id="app-logo">
             <button class="back-button" id="global-back-btn" onclick="handleBack(event)">
                 <span class="back-icon">←</span>
             </button>
@@ -282,7 +282,7 @@
 
             // 2. Update Logo and Texts
             if (ELEMENTS.appLogo) {
-                ELEMENTS.appLogo.src = lang === 'ur' ? 'logoUrdu.jpeg' : 'logo.png';
+                ELEMENTS.appLogo.src = lang === 'ur' ? '/logoUrdu.jpeg' : '/logo.png';
             }
             
             if (ELEMENTS.statusMessage) ELEMENTS.statusMessage.textContent = TEXTS.message[lang];

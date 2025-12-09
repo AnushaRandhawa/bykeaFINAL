@@ -398,7 +398,7 @@
     <div class="app-container" id="app-container">
 
         <header class="app-header">
-            <img src="logoUrdu.jpeg" alt="Bykea" class="app-logo" id="app-logo">
+            <img src="/logoUrdu.jpeg" alt="Bykea" class="app-logo" id="app-logo">
 
             <div class="toggle-section lang-selector">
                 <div class="toggle-row">
@@ -418,7 +418,7 @@
         <main id="main-content">
             <h2 class="visually-hidden" id="service-heading">Select your service</h2>
             <p class="section-label" id="service-prompt" aria-hidden="true">SERVICES</p>
-            <img src="image.png" alt="Bykea Services" class="service-promo-image" id="service-promo-image">
+            <img src="/image.png" alt="Bykea Services" class="service-promo-image" id="service-promo-image">
             <div class="service-cards-container" id="service-cards">
                 
                 <a href="delivery.html" class="card card-delivery" data-service="delivery" 
@@ -594,7 +594,7 @@
             ELEMENTS.appContainer.className = `app-container mode-${currentMode}`;
 
             // 3. Update Header Texts and Logo
-            ELEMENTS.appLogo.src = currentLang === 'ur' ? 'logoUrdu.jpeg' : 'logo.png';
+            ELEMENTS.appLogo.src = currentLang === 'ur' ? '/logoUrdu.jpeg' : '/logo.png';
             ELEMENTS.appLogo.alt = "Bykea";
             if (ELEMENTS.serviceHeading) ELEMENTS.serviceHeading.textContent = TEXTS.serviceHeading[currentLang];
             // Service prompt shows "SERVICES" in uppercase (not translated, visual only)

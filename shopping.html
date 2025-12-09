@@ -544,7 +544,7 @@
     <div class="app-container mode-accessible" id="app-container">
 
         <header class="app-header">
-            <img src="logoUrdu.jpeg" alt="Bykea" class="app-logo" id="app-logo">
+            <img src="/logoUrdu.jpeg" alt="Bykea" class="app-logo" id="app-logo">
             <button class="back-button" id="global-back-btn" onclick="handleBack(event)">
                 <span class="back-icon">←</span>
             </button>
@@ -1255,7 +1255,7 @@
             const titleKey = `title${currentStep}`;
             const appLogo = document.getElementById('app-logo');
             if (appLogo) {
-                appLogo.src = lang === 'ur' ? 'logoUrdu.jpeg' : 'logo.png';
+                appLogo.src = lang === 'ur' ? '/logoUrdu.jpeg' : '/logo.png';
             }
             els.pageTitle.textContent = TEXTS[titleKey] ? TEXTS[titleKey][lang] : TEXTS.title1[lang];
             
