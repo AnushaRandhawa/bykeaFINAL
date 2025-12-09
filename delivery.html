@@ -162,9 +162,124 @@
         .mode-accessible .app-logo {
             height: auto;
         }
-        .app-title { font-weight: 800; margin: 0; }
-        .step-progress { margin: -0.5rem 0 1rem; color: #666; font-size: 0.9rem; }
-        .mode-accessible .step-progress { color: var(--hc-border); }
+        .app-title { font-weight: 800; margin: 0; font-size: 1.25rem; }
+        /* Progress Stepper */
+        .progress-stepper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            margin: 1rem 0;
+            position: relative;
+            --progress-percent: 0;
+        }
+        
+        .progress-stepper::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: #d0d0d0;
+            z-index: 0;
+            transform: translateY(-50%);
+        }
+        
+        .step-indicator {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            max-width: 20%;
+        }
+        
+        .step-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #d0d0d0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #666;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step-indicator.completed .step-circle {
+            background: var(--color-delivery);
+            border-color: var(--color-delivery);
+            color: white;
+        }
+        
+        .step-indicator.active .step-circle {
+            background: var(--color-delivery);
+            border-color: var(--color-delivery);
+            color: white;
+            box-shadow: 0 0 0 4px rgba(2, 170, 49, 0.2);
+        }
+        
+        .step-label {
+            margin-top: 0.5rem;
+            font-size: 0.65rem;
+            color: #666;
+            text-align: center;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+        
+        .step-indicator.completed .step-label,
+        .step-indicator.active .step-label {
+            color: var(--color-delivery);
+            font-weight: 600;
+        }
+        
+        /* Completed line between steps */
+        .progress-stepper::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            height: 2px;
+            background: var(--color-delivery);
+            z-index: 1;
+            transform: translateY(-50%);
+            transition: width 0.3s ease;
+            width: calc((var(--progress-percent, 0) / 100) * 80%);
+        }
+        
+        /* Accessible Mode */
+        .mode-accessible .step-circle {
+            width: 40px;
+            height: 40px;
+            font-size: 1.1rem;
+            border-width: 3px;
+        }
+        
+        .mode-accessible .step-label {
+            font-size: 1rem;
+            margin-top: 0.75rem;
+        }
+        
+        .mode-accessible .progress-stepper::before {
+            height: 3px;
+        }
+        
+        .mode-accessible .step-connector {
+            height: 3px;
+        }
+        
+        /* Hide old step-progress text */
+        .step-progress { 
+            display: none; 
+        }
 
 
         .back-button {
@@ -191,7 +306,7 @@
             margin-right: 1rem;
             margin-left: auto;
         }
-        .back-icon { font-size: 1.5rem; margin: 0 0.25rem; }
+        .back-icon { font-size: 1.5rem; margin: 0; }
 
         /* --- Wizard Step Views --- */
         .step-view { display: none; animation: fadeIn 0.3s ease; }
@@ -424,10 +539,30 @@
             <img src="logoUrdu.jpeg" alt="Bykea" class="app-logo" id="app-logo">
             <button class="back-button" id="global-back-btn" onclick="handleBack(event)">
                 <span class="back-icon">←</span>
-                <span id="back-label">Back</span>
             </button>
             <h1 class="app-title" id="page-title">Parcel Details</h1>
-            <p class="step-progress" id="step-progress">Step 1 of 5</p>
+            <div class="progress-stepper" id="progress-stepper" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="5" aria-label="Booking progress">
+                <div class="step-indicator active" data-step="1">
+                    <div class="step-circle">1</div>
+                    <span class="step-label" id="step-label-1">Category</span>
+                </div>
+                <div class="step-indicator" data-step="2">
+                    <div class="step-circle">2</div>
+                    <span class="step-label" id="step-label-2">Pickup</span>
+                </div>
+                <div class="step-indicator" data-step="3">
+                    <div class="step-circle">3</div>
+                    <span class="step-label" id="step-label-3">Drop-off</span>
+                </div>
+                <div class="step-indicator" data-step="4">
+                    <div class="step-circle">4</div>
+                    <span class="step-label" id="step-label-4">Review</span>
+                </div>
+                <div class="step-indicator" data-step="5">
+                    <div class="step-circle">5</div>
+                    <span class="step-label" id="step-label-5">Tracking</span>
+                </div>
+            </div>
         </header>
 
         <main id="main-content">
@@ -589,6 +724,13 @@
             title4: { ur: "آرڈر ریویو", en: "Order Review" },
             title5: { ur: "آرڈر ٹریکنگ", en: "Order Tracking" },
             
+            // Progress Stepper Labels
+            stepLabel1: { ur: "قسم", en: "Category" },
+            stepLabel2: { ur: "اٹھانے", en: "Pickup" },
+            stepLabel3: { ur: "منزل", en: "Drop-off" },
+            stepLabel4: { ur: "جائزہ", en: "Review" },
+            stepLabel5: { ur: "ٹریکنگ", en: "Tracking" },
+            
             // Labels & Buttons
             lblWhatSending: { ur: "آپ کیا بھیج رہے ہیں؟", en: "What are you sending?" },
             btnContinue: { ur: "جاری رکھیں", en: "Continue" },
@@ -659,7 +801,6 @@
             pageTitleMain: document.getElementById('page-title-main'),
             pageTitle: document.getElementById('page-title'),
             stepProgress: document.getElementById('step-progress'),
-            backLabel: document.getElementById('back-label'),
             globalBackBtn: document.getElementById('global-back-btn'),
             catGrid: document.getElementById('cat-grid'),
             modal: document.getElementById('modal'),
@@ -1008,6 +1149,42 @@
             if (currentStep === 5) updateStep5Tracking();
 
             updateTexts();
+            updateProgressStepper();
+        }
+        
+        function updateProgressStepper() {
+            const stepper = document.getElementById('progress-stepper');
+            if (!stepper) return;
+            
+            const lang = currentLang;
+            const indicators = stepper.querySelectorAll('.step-indicator');
+            const totalSteps = 5;
+            
+            // Calculate progress percentage
+            const progressPercent = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            stepper.style.setProperty('--progress-percent', progressPercent);
+            
+            indicators.forEach((indicator, index) => {
+                const stepNum = index + 1;
+                const label = indicator.querySelector('.step-label');
+                
+                // Update label text
+                if (label) {
+                    label.textContent = TEXTS[`stepLabel${stepNum}`][lang];
+                }
+                
+                // Update visual state
+                indicator.classList.remove('active', 'completed');
+                
+                if (stepNum < currentStep) {
+                    indicator.classList.add('completed');
+                } else if (stepNum === currentStep) {
+                    indicator.classList.add('active');
+                }
+            });
+            
+            // Update ARIA attributes
+            stepper.setAttribute('aria-valuenow', currentStep);
         }
         
         function showModal(title, message) {
@@ -1036,8 +1213,8 @@
             }
             els.pageTitle.textContent = TEXTS[titleKey][lang];
             els.pageTitleMain.textContent = `${TEXTS[titleKey][lang]} | ${TEXTS[titleKey]['en']}`;
-            els.stepProgress.textContent = `Step ${currentStep} of 5`;
-            els.backLabel.textContent = TEXTS.back[lang];
+            // Update progress stepper
+            updateProgressStepper();
 
 
             // --- Step 1 ---
@@ -1110,7 +1287,7 @@
             currentMode = localStorage.getItem('appMode') || 'accessible';
             selectedCategory = localStorage.getItem('deliveryCat') || 'document';
             
-            // Check for tracking status flag
+            // Check for tracking status flag (before switchView)
             const deliveryStatus = localStorage.getItem('deliveryStatus');
             if (deliveryStatus === 'confirmed') {
                 currentStep = 5;
@@ -1120,7 +1297,7 @@
             // ** NEW: Global Click Listener for text reading **
             els.container.addEventListener('click', handleTextClick);
             
-            // Call switchView on load to handle initial rendering and language update
+            // Call switchView on load to handle initial rendering, language update, and progress stepper
             switchView();
         });
     </script>

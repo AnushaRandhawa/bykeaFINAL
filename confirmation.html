@@ -187,7 +187,7 @@
             margin-right: 1rem;
             margin-left: auto;
         }
-        .back-icon { font-size: 1.5rem; margin: 0 0.25rem; }
+        .back-icon { font-size: 2rem; margin: 0; }
         
         .mode-accessible .back-button {
             font-size: 1.5rem;
@@ -210,7 +210,6 @@
             <img src="logoUrdu.jpeg" alt="Bykea" class="app-logo" id="app-logo">
             <button class="back-button" id="global-back-btn" onclick="handleBack(event)">
                 <span class="back-icon">←</span>
-                <span id="back-label">پیچھے جائیں</span>
             </button>
         </header>
         <div class="confirmation-box">
@@ -239,7 +238,6 @@
             html: document.documentElement,
             appLogo: document.getElementById('app-logo'),
             backBtn: document.getElementById('global-back-btn'),
-            backLabel: document.getElementById('back-label'),
             statusMessage: document.getElementById('status-message'),
             statusDetail: document.getElementById('status-detail'),
             okButton: document.getElementById('ok-button'),
@@ -287,10 +285,6 @@
                 ELEMENTS.appLogo.src = lang === 'ur' ? 'logoUrdu.jpeg' : 'logo.png';
             }
             
-            // Update back button label
-            if (ELEMENTS.backLabel) {
-                ELEMENTS.backLabel.textContent = TEXTS.back[lang];
-            }
             if (ELEMENTS.statusMessage) ELEMENTS.statusMessage.textContent = TEXTS.message[lang];
             if (ELEMENTS.statusDetail) ELEMENTS.statusDetail.textContent = TEXTS.detail[lang];
             if (ELEMENTS.okButton) ELEMENTS.okButton.textContent = TEXTS.ok[lang];

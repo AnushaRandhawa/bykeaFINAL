@@ -152,6 +152,114 @@
             margin-top: 1.5rem;
         }
         
+        /* Progress Stepper */
+        .progress-stepper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            margin: 1rem 0;
+            position: relative;
+            --progress-percent: 0;
+        }
+        
+        .progress-stepper::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: #d0d0d0;
+            z-index: 0;
+            transform: translateY(-50%);
+        }
+        
+        .progress-stepper::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            height: 2px;
+            background: var(--color-shopping);
+            z-index: 1;
+            transform: translateY(-50%);
+            transition: width 0.3s ease;
+            width: calc((var(--progress-percent) / 100) * 80%);
+        }
+        
+        .step-indicator {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            max-width: 25%;
+        }
+        
+        .step-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #d0d0d0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #666;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step-indicator.completed .step-circle {
+            background: var(--color-shopping);
+            border-color: var(--color-shopping);
+            color: white;
+        }
+        
+        .step-indicator.active .step-circle {
+            background: var(--color-shopping);
+            border-color: var(--color-shopping);
+            color: white;
+            box-shadow: 0 0 0 4px rgba(2, 170, 49, 0.2);
+        }
+        
+        .step-label {
+            margin-top: 0.5rem;
+            font-size: 0.65rem;
+            color: #666;
+            text-align: center;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+        
+        .step-indicator.completed .step-label,
+        .step-indicator.active .step-label {
+            color: var(--color-shopping);
+            font-weight: 600;
+        }
+        
+        .mode-accessible .step-circle {
+            width: 40px;
+            height: 40px;
+            font-size: 1.1rem;
+            border-width: 3px;
+        }
+        
+        .mode-accessible .step-label {
+            font-size: 0.9rem;
+            margin-top: 0.75rem;
+        }
+        
+        .mode-accessible .progress-stepper::before,
+        .mode-accessible .progress-stepper::after {
+            height: 3px;
+        }
+        
         /* Add horizontal padding to content */
         main#main-content,
         .header-title {
@@ -173,7 +281,7 @@
         .mode-accessible .app-logo {
             height: auto;
         }
-        .header-title { font-weight: 800; margin: 0; color: var(--color-text); }
+        .header-title { font-weight: 800; margin: 0; color: var(--color-text); font-size: 1.25rem; }
 
         .back-button {
             position: relative;
@@ -199,7 +307,7 @@
             margin-right: 1rem;
             margin-left: auto;
         }
-        .back-icon { font-size: 1.5rem; margin: 0 0.25rem; }
+        .back-icon { font-size: 1.5rem; margin: 0; }
         
         /* --- Wizard Step Views --- */
         .step-view { 
@@ -439,9 +547,26 @@
             <img src="logoUrdu.jpeg" alt="Bykea" class="app-logo" id="app-logo">
             <button class="back-button" id="global-back-btn" onclick="handleBack(event)">
                 <span class="back-icon">←</span>
-                <span id="back-label">پیچھے جائیں</span>
             </button>
             <h1 class="header-title" id="page-title">دکانیں</h1>
+            <div class="progress-stepper" id="progress-stepper" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="4" aria-label="Booking progress">
+                <div class="step-indicator active" data-step="1">
+                    <div class="step-circle">1</div>
+                    <span class="step-label" id="step-label-1">Search</span>
+                </div>
+                <div class="step-indicator" data-step="2">
+                    <div class="step-circle">2</div>
+                    <span class="step-label" id="step-label-2">Store</span>
+                </div>
+                <div class="step-indicator" data-step="3">
+                    <div class="step-circle">3</div>
+                    <span class="step-label" id="step-label-3">Items</span>
+                </div>
+                <div class="step-indicator" data-step="4">
+                    <div class="step-circle">4</div>
+                    <span class="step-label" id="step-label-4">Review</span>
+                </div>
+            </div>
         </header>
 
         <main id="main-content">
@@ -554,6 +679,12 @@
             title2: { ur: "سٹورز", en: "Stores" },
             title3: { ur: "اشیاء منتخب کریں", en: "Select Items" },
             title4: { ur: "آپ کا آرڈر", en: "Your Order" },
+            
+            // Progress Stepper Labels
+            stepLabel1: { ur: "تلاش", en: "Search" },
+            stepLabel2: { ur: "سٹور", en: "Store" },
+            stepLabel3: { ur: "اشیاء", en: "Items" },
+            stepLabel4: { ur: "جائزہ", en: "Review" },
             searchShop: { ur: "دکانیں تلاش کریں", en: "Search for shops" },
             searchItem: { ur: "اشیاء تلاش کریں...", en: "Search for items..." },
             help: { ur: "مدد", en: "Help" },
@@ -780,7 +911,8 @@
             els.container.addEventListener('click', handleTextClick);
             
             updateTexts();
-            goToStep(1); 
+            goToStep(1);
+            updateProgressStepper();
              // Initial Voice Announcement (delayed for stability)
              setTimeout(() => {
                  const titleKey = `title${currentStep}`;
@@ -1064,6 +1196,42 @@
 
             updateTexts();
             updateFooter();
+            updateProgressStepper();
+        }
+        
+        function updateProgressStepper() {
+            const stepper = document.getElementById('progress-stepper');
+            if (!stepper) return;
+            
+            const lang = currentLang;
+            const indicators = stepper.querySelectorAll('.step-indicator');
+            const totalSteps = 4;
+            
+            // Calculate progress percentage
+            const progressPercent = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            stepper.style.setProperty('--progress-percent', progressPercent);
+            
+            indicators.forEach((indicator, index) => {
+                const stepNum = index + 1;
+                const label = indicator.querySelector('.step-label');
+                
+                // Update label text
+                if (label) {
+                    label.textContent = TEXTS[`stepLabel${stepNum}`][lang];
+                }
+                
+                // Update visual state
+                indicator.classList.remove('active', 'completed');
+                
+                if (stepNum < currentStep) {
+                    indicator.classList.add('completed');
+                } else if (stepNum === currentStep) {
+                    indicator.classList.add('active');
+                }
+            });
+            
+            // Update ARIA attributes
+            stepper.setAttribute('aria-valuenow', currentStep);
         }
 
         function showModal(title, message) {
@@ -1081,7 +1249,6 @@
                 appLogo.src = lang === 'ur' ? 'logoUrdu.jpeg' : 'logo.png';
             }
             els.pageTitle.textContent = TEXTS[titleKey] ? TEXTS[titleKey][lang] : TEXTS.title1[lang];
-            document.getElementById('back-label').textContent = TEXTS.back[lang];
             
             if (currentStep === 1) {
                  if(document.getElementById('shop-search')) document.getElementById('shop-search').placeholder = TEXTS.searchShop[lang];
@@ -1120,6 +1287,9 @@
             document.getElementById('modal-ok').textContent = TEXTS.modalOk[lang];
 
             updateFooter();
+            
+            // Initialize progress stepper
+            updateProgressStepper();
         }
 
         // Run
